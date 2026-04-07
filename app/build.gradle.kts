@@ -81,6 +81,10 @@ if (!isBundle) {
 
 dependencies {
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.22.0")
+    // FileProvider (content:// URIs for sharing)
+    implementation("androidx.core:core:1.13.1")
+    // DocumentFile — Storage Access Framework (SAF) folder access
+    implementation("androidx.documentfile:documentfile:1.0.1")
 }
 
 // Dedicated configuration to resolve the ORT AAR for the Rust build
