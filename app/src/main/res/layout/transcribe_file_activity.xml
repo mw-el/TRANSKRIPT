@@ -7,7 +7,6 @@
     android:fitsSystemWindows="true"
     android:padding="24dp">
 
-    <!-- Close button -->
     <ImageButton
         android:id="@+id/btn_close"
         android:layout_width="40dp"
@@ -26,7 +25,7 @@
         android:paddingTop="48dp"
         android:paddingBottom="16dp">
 
-        <!-- Progress area (shown during processing) -->
+        <!-- Progress area -->
         <LinearLayout
             android:id="@+id/progress_area"
             android:layout_width="match_parent"
@@ -53,7 +52,7 @@
                 android:textSize="15sp" />
         </LinearLayout>
 
-        <!-- Result area (shown after transcription) -->
+        <!-- Result area -->
         <ScrollView
             android:id="@+id/result_area"
             android:layout_width="match_parent"
@@ -74,17 +73,49 @@
                 android:textIsSelectable="true" />
         </ScrollView>
 
-        <!-- Copy button (shown after transcription) -->
-        <Button
-            android:id="@+id/btn_copy"
-            android:layout_width="wrap_content"
+        <!-- Action buttons (shown after transcription) -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Copy to clipboard"
-            android:visibility="gone"
-            android:backgroundTint="#3B82F6"
-            android:textColor="#FFFFFF"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp" />
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="4dp">
+
+            <Button
+                android:id="@+id/btn_copy"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="@string/transcript_copy"
+                android:visibility="gone"
+                android:backgroundTint="#3B82F6"
+                android:textColor="#FFFFFF" />
+
+            <Button
+                android:id="@+id/btn_save"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:text="@string/transcript_save"
+                android:visibility="gone"
+                android:backgroundTint="#10B981"
+                android:textColor="#FFFFFF" />
+
+            <Button
+                android:id="@+id/btn_share"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="@string/transcript_share"
+                android:visibility="gone"
+                android:backgroundTint="#6366F1"
+                android:textColor="#FFFFFF" />
+
+        </LinearLayout>
 
     </LinearLayout>
 
