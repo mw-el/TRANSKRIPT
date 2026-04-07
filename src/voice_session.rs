@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use jni::objects::{GlobalRef, JObject};
+use jni::objects::{GlobalRef, JObject, JByteArray};
 use jni::JNIEnv;
 use transcribe_rs::TranscriptionEngine;
 
@@ -42,6 +42,41 @@ fn notify_text(env: &mut JNIEnv, obj: &JObject, text: &str) {
             "(Ljava/lang/String;)V",
             &[(&jtxt).into()],
         );
+    }
+}
+
+/// Converts f32 PCM samples [-1.0, 1.0] to signed 16-bit little-endian bytes
+/// and passes them to `RustInputMethodService.onPcmAvailable(byte[])` via JNI.
+///
+/// Called after a successful transcription so that `pendingTranscriptForSave`
+/// is already set on the Java side before the bytes arrive.
+fn notify_pcm_available(env: &mut JNIEnv, obj: &JObject, samples: &[f32]) {
+    // f32 -> i16 LE bytes
+    let mut pcm_bytes: Vec<u8> = Vec::with_capacity(samples.len() * 2);
+    for &s in samples {
+        let clamped = s.clamp(-1.0, 1.0);
+        let i16_val = (clamped * 32767.0) as i16;
+        let le = i16_val.to_le_bytes();
+        pcm_bytes.push(le[0]);
+        pcm_bytes.push(le[1]);
+    }
+
+    // Create Java byte[] from the PCM bytes.
+    // JNI requires i8 (signed), so we reinterpret the u8 slice.
+    let signed: Vec<i8> = pcm_bytes.iter().map(|&b| b as i8).collect();
+
+    match env.new_byte_array(signed.len() as i32) {
+        Ok(jarray) => {
+            if env.set_byte_array_region(&jarray, 0, &signed).is_ok() {
+                let _ = env.call_method(
+                    obj,
+                    "onPcmAvailable",
+                    "([B)V",
+                    &[(&jarray).into()],
+                );
+            }
+        }
+        Err(e) => log::warn!("notify_pcm_available: could not create byte array: {}", e),
     }
 }
 
@@ -150,7 +185,7 @@ pub fn stop_recording(mut env: JNIEnv, state: &mut VoiceSessionState) {
 
     let buffer = state.audio_buffer.lock().unwrap().clone();
 
-    // Guard against empty buffer (mic permission denied, instant stop, etc.)
+    // Guard against empty buffer
     if buffer.is_empty() {
         notify_status(
             &mut env,
@@ -172,7 +207,7 @@ pub fn stop_recording(mut env: JNIEnv, state: &mut VoiceSessionState) {
         };
         let obj = target_ref.as_obj();
 
-        // Wait for engine if somehow still loading
+        // Wait for engine if still loading
         if engine::get_engine().is_none() {
             if let Err(_) = engine::ensure_loaded(&mut env, obj) {
                 return;
@@ -182,13 +217,16 @@ pub fn stop_recording(mut env: JNIEnv, state: &mut VoiceSessionState) {
         if let Some(eng_arc) = engine::get_engine() {
             let res = {
                 let mut eng = eng_arc.lock().unwrap();
-                eng.transcribe_samples(buffer, None)
+                eng.transcribe_samples(buffer.clone(), None)
             };
 
             match res {
                 Ok(r) => {
                     notify_status(&mut env, obj, "Ready");
+                    // 1. Send transcribed text first so Java sets pendingTranscriptForSave
                     notify_text(&mut env, obj, &r.text);
+                    // 2. Then send raw PCM so Java saves it under the same slug filename
+                    notify_pcm_available(&mut env, obj, &buffer);
                 }
                 Err(e) => notify_status(&mut env, obj, &format!("Error: {}", e)),
             }
