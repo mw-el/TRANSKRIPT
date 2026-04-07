@@ -19,6 +19,8 @@ import java.io.IOException;
 public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
     private static final int PERM_REQ_CODE = 101;
+    private static final int PERM_REQ_STORAGE = 102;
+    private static final int REQ_PICK_AUDIO = 201;
 
     static {
         try {
@@ -34,6 +36,7 @@ public class MainActivity extends Activity {
     private Button grantButton;
     private View permsCard;
     private Button startSubsButton;
+    private Button transcribeFileButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +47,7 @@ public class MainActivity extends Activity {
         permsCard = findViewById(R.id.card_permissions);
         grantButton = findViewById(R.id.btn_grant_perms);
         startSubsButton = findViewById(R.id.btn_subs_start);
+        transcribeFileButton = findViewById(R.id.btn_transcribe_file);
         Button imeSettingsButton = findViewById(R.id.btn_ime_settings);
 
         grantButton.setOnClickListener(v -> checkAndRequestPermissions());
@@ -57,6 +61,8 @@ public class MainActivity extends Activity {
             Intent intent = new Intent(this, LiveSubtitleActivity.class);
             startActivity(intent);
         });
+
+        transcribeFileButton.setOnClickListener(v -> pickAudioFile());
 
         Switch autoRecordSwitch = findViewById(R.id.switch_auto_record);
         File autoRecordFile = new File(getFilesDir(), "auto_record");
@@ -131,10 +137,53 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void pickAudioFile() {
+        // On Android 13+ READ_MEDIA_AUDIO is needed; on older versions READ_EXTERNAL_STORAGE.
+        // The file picker (ACTION_GET_CONTENT) works without a runtime permission grant
+        // when using the system picker UI, but we request it proactively for direct URI access.
+        String storagePermission = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                ? android.Manifest.permission.READ_MEDIA_AUDIO
+                : android.Manifest.permission.READ_EXTERNAL_STORAGE;
+
+        if (checkSelfPermission(storagePermission) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{storagePermission}, PERM_REQ_STORAGE);
+            return;
+        }
+
+        launchFilePicker();
+    }
+
+    private void launchFilePicker() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("audio/*");
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        startActivityForResult(Intent.createChooser(intent, "Choose audio file"), REQ_PICK_AUDIO);
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         if (requestCode == PERM_REQ_CODE) {
             updatePermissionUI();
+        } else if (requestCode == PERM_REQ_STORAGE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                launchFilePicker();
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQ_PICK_AUDIO && resultCode == RESULT_OK && data != null) {
+            Uri audioUri = data.getData();
+            if (audioUri != null) {
+                Intent intent = new Intent(this, TranscribeFileActivity.class);
+                intent.setAction(Intent.ACTION_VIEW);
+                intent.setData(audioUri);
+                // Grant read permission for the URI to the new activity
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                startActivity(intent);
+            }
         }
     }
 
