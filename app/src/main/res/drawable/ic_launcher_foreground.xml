@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Microphone body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,28 C49,28 45,32 45,37 L45,54 C45,59 49,63 54,63 C59,63 63,59 63,54 L63,37 C63,32 59,28 54,28 Z"/>
+    <!-- Microphone arc -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:pathData="M38,52 C38,63.5 45,73 54,73 C63,73 70,63.5 70,52"/>
+    <!-- Stand line -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:pathData="M54,73 L54,82"/>
+    <!-- Base -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="3"
+        android:pathData="M44,82 L64,82"/>
+</vector>
