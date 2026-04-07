@@ -239,6 +239,53 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!-- Transcribe File Card -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:elevation="4dp"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Transcribe Audio File"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/textPrimary"/>
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@android:drawable/ic_menu_upload"
+                    android:tint="@color/colorPrimary"/>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Pick an audio file from your device and transcribe it offline."
+                android:textColor="@color/textSecondary"
+                android:layout_marginBottom="16dp"/>
+
+            <Button
+                android:id="@+id/btn_transcribe_file"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Choose Audio File"
+                style="@style/ButtonStyle"/>
+        </LinearLayout>
+
         <!-- Subtitles Card -->
         <LinearLayout
             android:layout_width="match_parent"
