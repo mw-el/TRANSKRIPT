@@ -45,18 +45,22 @@ public class TranscribeFileActivity extends Activity {
     private ScrollView resultArea;
     private TextView resultText;
     private Button copyButton;
+    private Button saveButton;
+    private Button shareButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.transcribe_file_activity);
 
-        statusText = findViewById(R.id.txt_status);
-        progressBar = findViewById(R.id.progress_bar);
+        statusText   = findViewById(R.id.txt_status);
+        progressBar  = findViewById(R.id.progress_bar);
         progressArea = findViewById(R.id.progress_area);
-        resultArea = findViewById(R.id.result_area);
-        resultText = findViewById(R.id.txt_result);
-        copyButton = findViewById(R.id.btn_copy);
+        resultArea   = findViewById(R.id.result_area);
+        resultText   = findViewById(R.id.txt_result);
+        copyButton   = findViewById(R.id.btn_copy);
+        saveButton   = findViewById(R.id.btn_save);
+        shareButton  = findViewById(R.id.btn_share);
 
         findViewById(R.id.btn_close).setOnClickListener(v -> finish());
 
@@ -64,9 +68,21 @@ public class TranscribeFileActivity extends Activity {
             String text = resultText.getText().toString();
             if (!text.isEmpty()) {
                 ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("Transcription", text);
-                clipboard.setPrimaryClip(clip);
-                Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show();
+                clipboard.setPrimaryClip(ClipData.newPlainText("Transcription", text));
+                Toast.makeText(this, getString(R.string.transcript_copied), Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        saveButton.setOnClickListener(v -> saveTranscript());
+
+        shareButton.setOnClickListener(v -> {
+            String text = resultText.getText().toString();
+            if (!text.isEmpty()) {
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("text/plain");
+                shareIntent.putExtra(Intent.EXTRA_TEXT, text);
+                startActivity(Intent.createChooser(shareIntent,
+                        getString(R.string.transcript_share_title)));
             }
         });
 
@@ -90,7 +106,6 @@ public class TranscribeFileActivity extends Activity {
     private Uri getAudioUri() {
         Intent intent = getIntent();
         if (intent == null) return null;
-
         String action = intent.getAction();
         if (Intent.ACTION_SEND.equals(action)) {
             return intent.getParcelableExtra(Intent.EXTRA_STREAM);
@@ -115,20 +130,39 @@ public class TranscribeFileActivity extends Activity {
     // Called from Rust with transcription result
     public void onTextTranscribed(String text) {
         runOnUiThread(() -> {
-            // Hide progress, show result
             progressArea.setVisibility(View.GONE);
             resultArea.setVisibility(View.VISIBLE);
             copyButton.setVisibility(View.VISIBLE);
+            saveButton.setVisibility(View.VISIBLE);
+            shareButton.setVisibility(View.VISIBLE);
 
             resultText.setText(text);
 
             // Auto-copy to clipboard
             ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-            ClipData clip = ClipData.newPlainText("Transcription", text);
-            clipboard.setPrimaryClip(clip);
-
-            Toast.makeText(this, "Transcription copied to clipboard", Toast.LENGTH_LONG).show();
+            clipboard.setPrimaryClip(ClipData.newPlainText("Transcription", text));
+            Toast.makeText(this, getString(R.string.transcript_copied), Toast.LENGTH_LONG).show();
         });
+    }
+
+    private void saveTranscript() {
+        String text = resultText.getText().toString();
+        if (text.isEmpty()) return;
+
+        new Thread(() -> {
+            String saved = TranscribeSaver.saveTranscript(this, text);
+            runOnUiThread(() -> {
+                if (saved != null) {
+                    Toast.makeText(this,
+                            getString(R.string.transcript_saved, saved),
+                            Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(this,
+                            getString(R.string.transcript_save_error),
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
+        }).start();
     }
 
     private void startDecodeAndTranscribe() {
@@ -145,10 +179,8 @@ public class TranscribeFileActivity extends Activity {
                     runOnUiThread(() -> statusText.setText("Error: Could not decode audio file"));
                     return;
                 }
-
                 runOnUiThread(() -> statusText.setText("Transcribing..."));
                 transcribeAudio(samples, samples.length);
-
             } catch (Exception e) {
                 Log.e(TAG, "Error decoding audio", e);
                 runOnUiThread(() -> statusText.setText("Error: " + e.getMessage()));
@@ -156,14 +188,10 @@ public class TranscribeFileActivity extends Activity {
         }).start();
     }
 
-    /**
-     * Decode audio from a Uri to 16kHz mono float samples using MediaExtractor/MediaCodec.
-     */
     private float[] decodeAudioToSamples(Uri uri) throws IOException {
         MediaExtractor extractor = new MediaExtractor();
         extractor.setDataSource(this, uri, null);
 
-        // Find audio track
         int audioTrackIndex = -1;
         MediaFormat inputFormat = null;
         for (int i = 0; i < extractor.getTrackCount(); i++) {
@@ -194,14 +222,12 @@ public class TranscribeFileActivity extends Activity {
 
         List<float[]> allChunks = new ArrayList<>();
         int totalSamples = 0;
-
         MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
         boolean inputDone = false;
         boolean outputDone = false;
         long timeoutUs = 10000;
 
         while (!outputDone) {
-            // Feed input
             if (!inputDone) {
                 int inputBufferIndex = codec.dequeueInputBuffer(timeoutUs);
                 if (inputBufferIndex >= 0) {
@@ -212,49 +238,38 @@ public class TranscribeFileActivity extends Activity {
                                 MediaCodec.BUFFER_FLAG_END_OF_STREAM);
                         inputDone = true;
                     } else {
-                        long presentationTimeUs = extractor.getSampleTime();
                         codec.queueInputBuffer(inputBufferIndex, 0, bytesRead,
-                                presentationTimeUs, 0);
+                                extractor.getSampleTime(), 0);
                         extractor.advance();
                     }
                 }
             }
 
-            // Drain output
             int outputBufferIndex = codec.dequeueOutputBuffer(bufferInfo, timeoutUs);
             if (outputBufferIndex >= 0) {
-                if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
                     outputDone = true;
-                }
 
                 ByteBuffer outputBuffer = codec.getOutputBuffer(outputBufferIndex);
                 if (outputBuffer != null && bufferInfo.size > 0) {
                     outputBuffer.position(bufferInfo.offset);
                     outputBuffer.limit(bufferInfo.offset + bufferInfo.size);
-
-                    // Decoded PCM is 16-bit signed. Convert to mono float.
                     ShortBuffer shortBuf = outputBuffer.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
                     int shortCount = shortBuf.remaining();
                     int monoCount = shortCount / channelCount;
-
                     float[] chunk = new float[monoCount];
                     for (int i = 0; i < monoCount; i++) {
                         if (channelCount == 1) {
                             chunk[i] = shortBuf.get() / 32768.0f;
                         } else {
-                            // Mix channels to mono
                             float sum = 0;
-                            for (int c = 0; c < channelCount; c++) {
-                                sum += shortBuf.get() / 32768.0f;
-                            }
+                            for (int c = 0; c < channelCount; c++) sum += shortBuf.get() / 32768.0f;
                             chunk[i] = sum / channelCount;
                         }
                     }
-
                     allChunks.add(chunk);
                     totalSamples += monoCount;
                 }
-
                 codec.releaseOutputBuffer(outputBufferIndex, false);
             }
         }
@@ -263,52 +278,41 @@ public class TranscribeFileActivity extends Activity {
         codec.release();
         extractor.release();
 
-        // Resample to 16kHz if needed
         float[] monoSamples = mergeChunks(allChunks, totalSamples);
-
         if (sampleRate != TARGET_SAMPLE_RATE) {
             Log.i(TAG, "Resampling from " + sampleRate + " to " + TARGET_SAMPLE_RATE);
             monoSamples = resample(monoSamples, sampleRate, TARGET_SAMPLE_RATE);
         }
-
-        Log.i(TAG, "Decoded " + monoSamples.length + " samples at 16kHz");
         return monoSamples;
     }
 
-    private float[] mergeChunks(List<float[]> chunks, int totalSamples) {
-        float[] result = new float[totalSamples];
+    private float[] mergeChunks(List<float[]> chunks, int total) {
+        float[] result = new float[total];
         int offset = 0;
-        for (float[] chunk : chunks) {
-            System.arraycopy(chunk, 0, result, offset, chunk.length);
-            offset += chunk.length;
+        for (float[] c : chunks) {
+            System.arraycopy(c, 0, result, offset, c.length);
+            offset += c.length;
         }
         return result;
     }
 
-    /**
-     * Simple linear interpolation resampling.
-     */
     private float[] resample(float[] input, int fromRate, int toRate) {
         double ratio = (double) fromRate / toRate;
         int outputLength = (int) (input.length / ratio);
         float[] output = new float[outputLength];
-
         for (int i = 0; i < outputLength; i++) {
             double srcIndex = i * ratio;
             int idx = (int) srcIndex;
             double frac = srcIndex - idx;
-
             if (idx + 1 < input.length) {
                 output[i] = (float) (input[idx] * (1.0 - frac) + input[idx + 1] * frac);
             } else if (idx < input.length) {
                 output[i] = input[idx];
             }
         }
-
         return output;
     }
 
-    // Native methods
     private native void initNative(TranscribeFileActivity activity);
     private native void cleanupNative();
     private native void transcribeAudio(float[] samples, int length);

@@ -32,28 +32,32 @@
             </intent-filter>
         </activity>
 
-        <!-- Live Subtitles Activity (for permissions) -->
+        <!-- Settings Activity -->
+        <activity
+            android:name=".SettingsActivity"
+            android:label="@string/settings_title"
+            android:exported="false" />
+
+        <!-- Live Subtitles Activity -->
         <activity
             android:name=".LiveSubtitleActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:excludeFromRecents="true"
             android:launchMode="singleInstance"
             android:exported="false" />
-            
-        <!-- RecognizerIntent entry point (for SwiftKey chooser) -->
+
+        <!-- RecognizerIntent entry point -->
         <activity
             android:name=".RecognizeActivity"
             android:exported="true"
             android:excludeFromRecents="true"
             android:launchMode="singleTask"
             android:theme="@android:style/Theme.DeviceDefault.Dialog.NoActionBar">
-
             <intent-filter>
                 <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
 
         <!-- Transcribe shared audio file -->
         <activity
@@ -62,15 +66,11 @@
             android:excludeFromRecents="true"
             android:launchMode="singleTask"
             android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
-
-            <!-- Handle "Share" from other apps -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="audio/*" />
             </intent-filter>
-
-            <!-- Handle "Open with" for audio files -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
