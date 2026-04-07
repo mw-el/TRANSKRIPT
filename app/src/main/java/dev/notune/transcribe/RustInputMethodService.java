@@ -18,7 +18,7 @@ import android.view.inputmethod.EditorInfo;
 import java.io.File;
 
 public class RustInputMethodService extends InputMethodService {
-    
+
     private static final String TAG = "OfflineVoiceInput";
 
     static {
@@ -44,13 +44,16 @@ public class RustInputMethodService extends InputMethodService {
     private boolean isRecording = false;
     private boolean pendingSwitchBack = false;
     private String lastStatus = "Initializing...";
-    // Key repeat settings
-    private static final long REPEAT_INITIAL_DELAY = 400; // ms before repeat starts
-    private static final long REPEAT_INTERVAL = 50; // ms between repeats
+    private static final long REPEAT_INITIAL_DELAY = 400;
+    private static final long REPEAT_INTERVAL = 50;
     private Runnable backspaceRepeatRunnable;
     private Runnable spaceRepeatRunnable;
     private final AudioFocusPauser audioPauser = new AudioFocusPauser();
     private boolean pauseAudioActive = false;
+
+    // Transkript-Text, der zusammen mit der PCM-Aufnahme gespeichert wird.
+    // Wird in onTextTranscribed() gesetzt und in onPcmAvailable() verwendet.
+    private volatile String pendingTranscriptForSave = null;
 
     @Override
     public void onCreate() {
@@ -69,8 +72,7 @@ public class RustInputMethodService extends InputMethodService {
         Log.d(TAG, "onCreateInputView");
         try {
             View view = getLayoutInflater().inflate(R.layout.ime_layout, null);
-            
-            // Handle window insets for avoiding navigation bar overlap
+
             view.setOnApplyWindowInsetsListener((v, insets) -> {
                 int paddingBottom = insets.getSystemWindowInsetBottom();
                 int originalPaddingBottom = v.getPaddingTop();
@@ -98,7 +100,6 @@ public class RustInputMethodService extends InputMethodService {
                 }
             });
 
-            // Key repeat runnable for backspace
             backspaceRepeatRunnable = new Runnable() {
                 @Override
                 public void run() {
@@ -111,7 +112,6 @@ public class RustInputMethodService extends InputMethodService {
                 }
             };
 
-            // Key repeat runnable for space
             spaceRepeatRunnable = new Runnable() {
                 @Override
                 public void run() {
@@ -165,10 +165,6 @@ public class RustInputMethodService extends InputMethodService {
                     int imeOptions = editorInfo.imeOptions;
                     int action = imeOptions & android.view.inputmethod.EditorInfo.IME_MASK_ACTION;
                     boolean noEnterAction = (imeOptions & android.view.inputmethod.EditorInfo.IME_FLAG_NO_ENTER_ACTION) != 0;
-
-                    // If the editor flags IME_FLAG_NO_ENTER_ACTION (e.g. multi-line fields in
-                    // messaging apps like Signal), or if there's no meaningful action, insert a
-                    // newline. Otherwise perform the editor action (Go, Search, Send, etc.).
                     if (!noEnterAction && (
                             action == android.view.inputmethod.EditorInfo.IME_ACTION_GO ||
                             action == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH ||
@@ -184,15 +180,12 @@ public class RustInputMethodService extends InputMethodService {
 
             recordContainer.setOnClickListener(v -> {
                 if (!recordContainer.isEnabled()) return;
-
-                // Check microphone permission
                 if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
                         != PackageManager.PERMISSION_GRANTED) {
                     if (statusView != null) statusView.setText("No mic permission - grant in app");
                     if (hintView != null) hintView.setText("Open the app to grant permission");
                     return;
                 }
-
                 if (isRecording) {
                     stopRecording();
                     if (pauseAudioActive) {
@@ -201,6 +194,7 @@ public class RustInputMethodService extends InputMethodService {
                     }
                     updateRecordButtonUI(false);
                 } else {
+                    pendingTranscriptForSave = null;
                     if (isPauseAudioEnabled()) {
                         audioPauser.request(this);
                         pauseAudioActive = true;
@@ -226,6 +220,7 @@ public class RustInputMethodService extends InputMethodService {
         if (!isRecording && new File(getFilesDir(), "auto_record").exists()) {
             if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
                     == PackageManager.PERMISSION_GRANTED) {
+                pendingTranscriptForSave = null;
                 if (isPauseAudioEnabled()) {
                     audioPauser.request(this);
                     pauseAudioActive = true;
@@ -257,11 +252,11 @@ public class RustInputMethodService extends InputMethodService {
     private void updateRecordButtonUI(boolean recording) {
         isRecording = recording;
         if (recording) {
-            micIcon.setColorFilter(0xFFF44336); // Red
+            micIcon.setColorFilter(0xFFF44336);
             statusView.setText("Listening...");
             hintView.setText("Tap to Stop");
         } else {
-            micIcon.setColorFilter(0xFF2196F3); // Blue
+            micIcon.setColorFilter(0xFF2196F3);
             statusView.setText("Processing...");
             hintView.setText("Tap to Record");
         }
@@ -277,14 +272,10 @@ public class RustInputMethodService extends InputMethodService {
         }
     }
 
-    // Native methods
-    private native void initNative(RustInputMethodService service);
-    private native void cleanupNative();
-    private native void startRecording();
-    private native void stopRecording();
-    private native void cancelRecording();
+    // ----------------------------------------------------------------
+    // Callbacks from Rust
+    // ----------------------------------------------------------------
 
-    // Called from Rust
     public void onStatusUpdate(String status) {
         mainHandler.post(() -> {
             Log.d(TAG, "Status: " + status);
@@ -301,43 +292,10 @@ public class RustInputMethodService extends InputMethodService {
         });
     }
 
-    private void updateUiState() {
-        boolean isLoading = lastStatus.contains("Loading") || lastStatus.contains("Initializing");
-        boolean isWaiting = lastStatus.contains("Waiting");
-        boolean isTranscribing = lastStatus.contains("Transcribing") || lastStatus.contains("Processing");
-        boolean isError = lastStatus.startsWith("Error");
-        boolean isReady = lastStatus.equals("Ready");
-
-        // Don't show internal loading states to the user
-        if (statusView != null && !isRecording) {
-            if (isError) {
-                statusView.setText(lastStatus);
-            } else if (isTranscribing || isWaiting) {
-                statusView.setText("Processing...");
-            } else {
-                statusView.setText("Tap to Record");
-            }
-        }
-
-        // Hide progress bar - don't expose model loading to user
-        if (progressBar != null) {
-            progressBar.setVisibility(View.GONE);
-        }
-
-        // Disable button only during transcription/processing/waiting or fatal errors
-        if (recordContainer != null) {
-            boolean disable = isTranscribing || isWaiting || isError;
-            recordContainer.setEnabled(!disable);
-            recordContainer.setAlpha(disable ? 0.5f : 1.0f);
-        }
-
-        if (hintView != null && !isRecording) {
-            hintView.setText("Tap to Record");
-        }
-    }
-
-    // Called from Rust
     public void onTextTranscribed(String text) {
+        // Remember text so onPcmAvailable() can use it as filename
+        pendingTranscriptForSave = text;
+
         mainHandler.post(() -> {
             InputConnection ic = getCurrentInputConnection();
             if (ic != null) {
@@ -350,9 +308,7 @@ public class RustInputMethodService extends InputMethodService {
                     if (et != null) {
                         int end = et.selectionStart;
                         int start = end - committed.length();
-                        if (start >= 0) {
-                            ic.setSelection(start, end);
-                        }
+                        if (start >= 0) ic.setSelection(start, end);
                     }
                 }
             }
@@ -368,7 +324,69 @@ public class RustInputMethodService extends InputMethodService {
             }
         });
     }
+
+    /**
+     * Called from Rust after stopRecording() completes.
+     * {@code pcm16} contains the full signed 16-bit little-endian PCM buffer
+     * recorded at 16 kHz mono.
+     *
+     * The buffer is encoded to Opus and saved in a background thread so we
+     * don't block the main thread or the Rust caller.
+     *
+     * Rust-side: call this via JNI with the accumulated PCM bytes before
+     * discarding the audio buffer. Example (pseudo-Rust):
+     *   env.call_method(&service, "onPcmAvailable", "([B)V", &[pcm_jbytearray])
+     */
+    public void onPcmAvailable(byte[] pcm16) {
+        if (pcm16 == null || pcm16.length == 0) return;
+        final String transcriptText = pendingTranscriptForSave != null
+                ? pendingTranscriptForSave : "";
+        pendingTranscriptForSave = null;
+
+        new Thread(() -> {
+            String saved = TranscribeSaver.saveRecording(this, transcriptText, pcm16);
+            if (saved != null)
+                Log.d(TAG, "IME Aufnahme gespeichert: " + saved);
+            else
+                Log.w(TAG, "IME Aufnahme konnte nicht gespeichert werden");
+        }).start();
+    }
+
     public void onAudioLevel(float level) { }
+
+    // ----------------------------------------------------------------
+    // Native methods
+    // ----------------------------------------------------------------
+
+    private native void initNative(RustInputMethodService service);
+    private native void cleanupNative();
+    private native void startRecording();
+    private native void stopRecording();
+    private native void cancelRecording();
+
+    // ----------------------------------------------------------------
+    // Helpers
+    // ----------------------------------------------------------------
+
+    private void updateUiState() {
+        boolean isLoading      = lastStatus.contains("Loading") || lastStatus.contains("Initializing");
+        boolean isTranscribing = lastStatus.contains("Transcribing") || lastStatus.contains("Processing");
+        boolean isWaiting      = lastStatus.contains("Waiting");
+        boolean isError        = lastStatus.startsWith("Error");
+
+        if (statusView != null && !isRecording) {
+            if (isError)                          statusView.setText(lastStatus);
+            else if (isTranscribing || isWaiting) statusView.setText("Processing...");
+            else                                  statusView.setText("Tap to Record");
+        }
+        if (progressBar != null) progressBar.setVisibility(View.GONE);
+        if (recordContainer != null) {
+            boolean disable = isTranscribing || isWaiting || isError;
+            recordContainer.setEnabled(!disable);
+            recordContainer.setAlpha(disable ? 0.5f : 1.0f);
+        }
+        if (hintView != null && !isRecording) hintView.setText("Tap to Record");
+    }
 
     private boolean isPauseAudioEnabled() {
         return new File(getFilesDir(), "pause_audio").exists();
