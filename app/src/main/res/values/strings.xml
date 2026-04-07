@@ -36,10 +36,15 @@
     <string name="transcript_copy">Kopieren</string>
     <string name="transcript_save">Speichern</string>
     <string name="transcript_share">Teilen</string>
+    <string name="transcript_mail">E-Mail</string>
     <string name="transcript_copied">In Zwischenablage kopiert</string>
     <string name="transcript_saved">Gespeichert: %1$s</string>
     <string name="transcript_save_error">Transkript konnte nicht gespeichert werden</string>
     <string name="transcript_share_title">Transkript teilen</string>
+
+    <!-- E-Mail -->
+    <string name="mail_subject_prefix">Transkript vom</string>
+    <string name="mail_no_app">Keine E-Mail-App gefunden</string>
 
     <!-- Einstellungen-Screen -->
     <string name="settings_title">Einstellungen</string>
@@ -52,5 +57,13 @@
     <string name="settings_folder_reset_btn">Zurücksetzen</string>
     <string name="settings_folder_saved">Speicherort geändert</string>
     <string name="settings_folder_reset">Speicherort auf Standard zurückgesetzt</string>
-    <string name="settings_folder_hint">Transkripte (.txt) und Aufnahmen (.wav) werden hier mit gleichem Basisnamen gespeichert.</string>
+    <string name="settings_folder_hint">Transkripte (.txt) und Aufnahmen (.ogg) werden hier mit gleichem Basisnamen gespeichert.</string>
+    <string name="settings_section_email">E-Mail</string>
+    <string name="settings_email_label">Standard-Empfänger</string>
+    <string name="settings_email_hint">name@beispiel.ch</string>
+    <string name="settings_email_hint_desc">Beim Tippen auf „E-Mail“ wird diese Adresse automatisch eingetragen.</string>
+    <string name="settings_email_save">Speichern</string>
+    <string name="settings_email_saved">E-Mail-Adresse gespeichert</string>
+    <string name="settings_email_cleared">E-Mail-Adresse gelöscht</string>
+    <string name="error_no_audio">Keine Audiodatei übergeben</string>
 </resources>
