@@ -14,7 +14,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/welcome_title"
+            android:text="TRANSKR!PT"
             android:textSize="28sp"
             android:textStyle="bold"
             android:textColor="@color/textPrimary"
@@ -48,7 +48,7 @@
                 android:textStyle="bold"
                 android:textColor="@color/record_red"
                 android:layout_marginBottom="8dp"/>
-            
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -80,7 +80,7 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:layout_marginBottom="12dp">
-                
+
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -89,7 +89,7 @@
                     android:textSize="20sp"
                     android:textStyle="bold"
                     android:textColor="@color/textPrimary"/>
-                
+
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
@@ -164,7 +164,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
             </LinearLayout>
-            
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -201,7 +201,6 @@
                     android:layout_height="wrap_content"/>
             </LinearLayout>
 
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -237,6 +236,46 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
             </LinearLayout>
+
+            <!-- Save Folder Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="16dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/setting_save_folder"
+                        android:textSize="16sp"
+                        android:textColor="@color/textPrimary"/>
+
+                    <TextView
+                        android:id="@+id/text_save_folder"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/setting_save_folder_default"
+                        android:textSize="13sp"
+                        android:textColor="@color/textSecondary"
+                        android:layout_marginTop="4dp"/>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btn_save_settings"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btn_save_settings"
+                    style="@style/ButtonStyle"/>
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Transcribe File Card -->
@@ -259,7 +298,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Transcribe Audio File"
+                    android:text="Audiodatei transkribieren"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     android:textColor="@color/textPrimary"/>
@@ -274,7 +313,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Pick an audio file from your device and transcribe it offline."
+                android:text="Audiodatei vom Gerät wählen und offline transkribieren."
                 android:textColor="@color/textSecondary"
                 android:layout_marginBottom="16dp"/>
 
@@ -282,7 +321,7 @@
                 android:id="@+id/btn_transcribe_file"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Choose Audio File"
+                android:text="Audiodatei wählen"
                 style="@style/ButtonStyle"/>
         </LinearLayout>
 
@@ -301,7 +340,7 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:layout_marginBottom="12dp">
-                
+
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -310,8 +349,8 @@
                     android:textSize="20sp"
                     android:textStyle="bold"
                     android:textColor="@color/textPrimary"/>
-                    
-                 <ImageView
+
+                <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@android:drawable/ic_media_play"
