@@ -11,15 +11,30 @@
         android:orientation="vertical">
 
         <!-- Header -->
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="TRANSKR!PT"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:textColor="@color/textPrimary"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:layout_marginTop="24dp"
-            android:layout_marginBottom="8dp"/>
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="TRANSKR!PT"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:textColor="@color/textPrimary"/>
+
+            <Button
+                android:id="@+id/btn_settings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/btn_settings"
+                style="@style/ButtonStyle"/>
+        </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
@@ -130,6 +145,7 @@
                 android:textColor="@color/textPrimary"
                 android:layout_marginBottom="12dp"/>
 
+            <!-- Auto-record -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -165,6 +181,7 @@
                     android:layout_height="wrap_content"/>
             </LinearLayout>
 
+            <!-- Pause audio -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -201,6 +218,7 @@
                     android:layout_height="wrap_content"/>
             </LinearLayout>
 
+            <!-- Select transcription -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
