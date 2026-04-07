@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#111827"
+    android:fitsSystemWindows="true"
+    android:padding="24dp">
+
+    <ImageButton
+        android:id="@+id/btn_close"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:background="#1F2937"
+        android:tint="#9CA3AF"
+        android:contentDescription="@string/btn_close"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/dictate_title"
+            android:textColor="#F3F4F6"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/dictate_subtitle"
+            android:textColor="#9CA3AF"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginBottom="48dp"/>
+
+        <!-- Timer -->
+        <TextView
+            android:id="@+id/tv_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:textColor="#F3F4F6"
+            android:textSize="48sp"
+            android:fontFamily="monospace"
+            android:layout_marginBottom="32dp"/>
+
+        <!-- Record / Stop button -->
+        <Button
+            android:id="@+id/btn_record"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:text="@string/dictate_btn_start"
+            android:textSize="18sp"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#3B82F6"
+            android:layout_marginBottom="32dp"/>
+
+        <!-- Status -->
+        <TextView
+            android:id="@+id/tv_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/dictate_status_idle"
+            android:textColor="#9CA3AF"
+            android:textSize="15sp"
+            android:gravity="center"/>
+
+    </LinearLayout>
+</LinearLayout>

@@ -55,6 +55,13 @@
             </intent-filter>
         </activity>
 
+        <!-- Dictate: record audio then transcribe -->
+        <activity
+            android:name=".DictateActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar" />
+
         <!-- Transcribe shared audio file -->
         <activity
             android:name=".TranscribeFileActivity"

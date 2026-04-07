@@ -21,6 +21,7 @@ import android.widget.Toast;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -217,13 +218,17 @@ public class TranscribeFileActivity extends Activity {
         if (audioTrackIndex < 0) return null;
 
         extractor.selectTrack(audioTrackIndex);
-        int sampleRate  = inputFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
+        int sampleRate   = inputFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
         int channelCount = inputFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
 
         MediaCodec codec = MediaCodec.createDecoderByType(
                 inputFormat.getString(MediaFormat.KEY_MIME));
         codec.configure(inputFormat, null, null, 0);
         codec.start();
+
+        // Track actual output format; may be updated on INFO_OUTPUT_FORMAT_CHANGED
+        int[]     outChannels = {channelCount};
+        boolean[] isPcmFloat  = {false};
 
         List<float[]> allChunks  = new ArrayList<>();
         int totalSamples = 0;
@@ -250,27 +255,53 @@ public class TranscribeFileActivity extends Activity {
                 }
             }
             int outIdx = codec.dequeueOutputBuffer(bufferInfo, timeoutUs);
-            if (outIdx >= 0) {
+            if (outIdx == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                MediaFormat outFmt = codec.getOutputFormat();
+                if (outFmt.containsKey(MediaFormat.KEY_CHANNEL_COUNT))
+                    outChannels[0] = outFmt.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
+                if (outFmt.containsKey(MediaFormat.KEY_PCM_ENCODING)) {
+                    // AudioFormat.ENCODING_PCM_FLOAT == 4
+                    isPcmFloat[0] = outFmt.getInteger(MediaFormat.KEY_PCM_ENCODING) == 4;
+                }
+            } else if (outIdx >= 0) {
                 if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
                     outputDone = true;
                 ByteBuffer outBuf = codec.getOutputBuffer(outIdx);
                 if (outBuf != null && bufferInfo.size > 0) {
                     outBuf.position(bufferInfo.offset);
                     outBuf.limit(bufferInfo.offset + bufferInfo.size);
-                    ShortBuffer sb = outBuf.order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
-                    int monoCount = sb.remaining() / channelCount;
-                    float[] chunk = new float[monoCount];
-                    for (int i = 0; i < monoCount; i++) {
-                        if (channelCount == 1) {
-                            chunk[i] = sb.get() / 32768.0f;
-                        } else {
-                            float sum = 0;
-                            for (int c = 0; c < channelCount; c++) sum += sb.get() / 32768.0f;
-                            chunk[i] = sum / channelCount;
+                    outBuf.order(ByteOrder.LITTLE_ENDIAN);
+                    int ch = outChannels[0];
+                    float[] chunk;
+                    if (isPcmFloat[0]) {
+                        FloatBuffer fb = outBuf.asFloatBuffer();
+                        int monoCount = fb.remaining() / ch;
+                        chunk = new float[monoCount];
+                        for (int i = 0; i < monoCount; i++) {
+                            if (ch == 1) {
+                                chunk[i] = fb.get();
+                            } else {
+                                float sum = 0;
+                                for (int c = 0; c < ch; c++) sum += fb.get();
+                                chunk[i] = sum / ch;
+                            }
+                        }
+                    } else {
+                        ShortBuffer sb = outBuf.asShortBuffer();
+                        int monoCount = sb.remaining() / ch;
+                        chunk = new float[monoCount];
+                        for (int i = 0; i < monoCount; i++) {
+                            if (ch == 1) {
+                                chunk[i] = sb.get() / 32768.0f;
+                            } else {
+                                float sum = 0;
+                                for (int c = 0; c < ch; c++) sum += sb.get() / 32768.0f;
+                                chunk[i] = sum / ch;
+                            }
                         }
                     }
                     allChunks.add(chunk);
-                    totalSamples += monoCount;
+                    totalSamples += chunk.length;
                 }
                 codec.releaseOutputBuffer(outIdx, false);
             }

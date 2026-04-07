@@ -66,4 +66,17 @@
     <string name="settings_email_saved">E-Mail-Adresse gespeichert</string>
     <string name="settings_email_cleared">E-Mail-Adresse gelöscht</string>
     <string name="error_no_audio">Keine Audiodatei übergeben</string>
+
+    <!-- Diktieren -->
+    <string name="section_dictate">Diktieren</string>
+    <string name="desc_dictate">Sprache aufnehmen und danach offline transkribieren.</string>
+    <string name="btn_dictate">Aufnahme starten</string>
+    <string name="dictate_title">Diktieren</string>
+    <string name="dictate_subtitle">Aufnahme starten und nach dem Diktat transkribieren lassen.</string>
+    <string name="dictate_btn_start">Aufnehmen</string>
+    <string name="dictate_btn_stop">Stopp &amp; Transkribieren</string>
+    <string name="dictate_recording">Aufnahme läuft…</string>
+    <string name="dictate_status_idle">Bereit</string>
+    <string name="dictate_error_mic">Fehler: Mikrofon nicht verfügbar</string>
+    <string name="dictate_error_empty">Fehler: Aufnahme leer oder fehlgeschlagen</string>
 </resources>

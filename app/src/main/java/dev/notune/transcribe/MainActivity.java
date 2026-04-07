@@ -36,6 +36,7 @@ public class MainActivity extends Activity {
     private View     permsCard;
     private Button   startSubsButton;
     private Button   transcribeFileButton;
+    private Button   dictateButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +48,7 @@ public class MainActivity extends Activity {
         grantButton          = findViewById(R.id.btn_grant_perms);
         startSubsButton      = findViewById(R.id.btn_subs_start);
         transcribeFileButton = findViewById(R.id.btn_transcribe_file);
+        dictateButton        = findViewById(R.id.btn_dictate);
         Button imeSettingsButton = findViewById(R.id.btn_ime_settings);
         Button settingsButton    = findViewById(R.id.btn_settings);
 
@@ -57,6 +59,8 @@ public class MainActivity extends Activity {
         startSubsButton.setOnClickListener(v ->
                 startActivity(new Intent(this, LiveSubtitleActivity.class)));
         transcribeFileButton.setOnClickListener(v -> pickAudioFile());
+        dictateButton.setOnClickListener(v ->
+                startActivity(new Intent(this, DictateActivity.class)));
         settingsButton.setOnClickListener(v ->
                 startActivity(new Intent(this, SettingsActivity.class)));
 
