@@ -116,19 +116,6 @@
     <string name="dictate_error_mic">Fehler: Mikrofon nicht verfügbar</string>
     <string name="dictate_error_empty">Fehler: Aufnahme leer oder fehlgeschlagen</string>
 
-    <!-- Aufnahmen verwalten -->
-    <string name="btn_recordings_manager">Aufnahmen verwalten</string>
-    <string name="recordings_title">Aufnahmen</string>
-    <string name="recordings_empty">Noch keine Aufnahmen vorhanden.</string>
-    <string name="recordings_play">Abspielen</string>
-    <string name="recordings_pause">Pause</string>
-    <string name="recordings_rename">Umbenennen</string>
-    <string name="recordings_delete">Löschen</string>
-    <string name="recordings_edit">Bearbeiten</string>
-    <string name="recordings_confirm_delete">Diese Datei löschen?</string>
-    <string name="recordings_rename_hint">Neuer Name (ohne Endung)</string>
     <string name="recordings_save">Speichern</string>
-
-    <!-- Settings-Sektionen -->
     <string name="settings_section_recording">Aufnahme</string>
 </resources>
