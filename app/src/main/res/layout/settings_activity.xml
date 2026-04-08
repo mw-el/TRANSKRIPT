@@ -2,76 +2,229 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1F2937"
+    android:background="@color/cl_bg"
     android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="@dimen/space_5">
 
-        <!-- Header row -->
+        <!-- Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="24dp">
+            android:layout_marginTop="@dimen/space_4"
+            android:layout_marginBottom="@dimen/space_5">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/settings_title"
-                android:textColor="#F9FAFB"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textSize="22sp"
+                android:fontFamily="@font/poppins_semibold"
+                android:textStyle="bold"
+                android:textColor="@color/cl_ink"/>
 
             <Button
                 android:id="@+id/btn_settings_close"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/btn_close"
-                android:backgroundTint="#374151"
-                android:textColor="#D1D5DB" />
+                style="@style/SecondaryButtonStyle"/>
         </LinearLayout>
 
-        <!-- Section: Speicherort -->
+        <!-- Section: Aufnahme -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/settings_section_storage"
-            android:textColor="#60A5FA"
-            android:textSize="12sp"
-            android:textAllCaps="true"
-            android:letterSpacing="0.1"
-            android:layout_marginBottom="12dp" />
+            android:text="AUFNAHME"
+            style="@style/SectionLabelStyle"
+            android:textAllCaps="true"/>
 
-        <!-- Folder card -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="#111827"
-            android:padding="16dp"
-            android:layout_marginBottom="24dp">
+            android:background="@drawable/bg_card"
+            android:padding="@dimen/space_5"
+            android:layout_marginBottom="@dimen/space_4">
+
+            <!-- Auto-record -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="@dimen/space_4">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/setting_auto_record"
+                        android:textSize="15sp"
+                        android:fontFamily="@font/inter_medium"
+                        android:textColor="@color/cl_ink"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/setting_auto_record_desc"
+                        android:textSize="13sp"
+                        android:fontFamily="@font/inter_regular"
+                        android:textColor="@color/cl_ink_soft"
+                        android:layout_marginTop="2dp"/>
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/switch_auto_record"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/cl_border"
+                android:layout_marginTop="@dimen/space_4"
+                android:layout_marginBottom="@dimen/space_4"/>
+
+            <!-- Select transcription -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="@dimen/space_4">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/setting_select_transcription"
+                        android:textSize="15sp"
+                        android:fontFamily="@font/inter_medium"
+                        android:textColor="@color/cl_ink"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/setting_select_transcription_desc"
+                        android:textSize="13sp"
+                        android:fontFamily="@font/inter_regular"
+                        android:textColor="@color/cl_ink_soft"
+                        android:layout_marginTop="2dp"/>
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/switch_select_transcription"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/cl_border"
+                android:layout_marginTop="@dimen/space_4"
+                android:layout_marginBottom="@dimen/space_4"/>
+
+            <!-- Pause audio -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:layout_marginEnd="@dimen/space_4">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/setting_pause_audio"
+                        android:textSize="15sp"
+                        android:fontFamily="@font/inter_medium"
+                        android:textColor="@color/cl_ink"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/setting_pause_audio_desc"
+                        android:textSize="13sp"
+                        android:fontFamily="@font/inter_regular"
+                        android:textColor="@color/cl_ink_soft"
+                        android:layout_marginTop="2dp"/>
+                </LinearLayout>
+
+                <Switch
+                    android:id="@+id/switch_pause_audio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Section: Speicher -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_section_storage_label"
+            style="@style/SectionLabelStyle"
+            android:textAllCaps="true"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="@dimen/space_5"
+            android:layout_marginBottom="@dimen/space_4">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/settings_folder_label"
-                android:textColor="#9CA3AF"
-                android:textSize="12sp"
-                android:layout_marginBottom="4dp" />
+                android:textColor="@color/cl_ink"
+                android:fontFamily="@font/inter_medium"
+                android:textSize="15sp"
+                android:layout_marginBottom="@dimen/space_2"/>
 
             <TextView
                 android:id="@+id/txt_folder_path"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#F3F4F6"
-                android:textSize="14sp"
-                android:layout_marginBottom="12dp" />
+                android:textColor="@color/cl_ink_soft"
+                android:fontFamily="@font/inter_regular"
+                android:textSize="13sp"
+                android:layout_marginBottom="@dimen/space_3"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_folder_hint"
+                android:textColor="@color/cl_ink_soft"
+                android:fontFamily="@font/inter_regular"
+                android:textSize="13sp"
+                android:layout_marginBottom="@dimen/space_4"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -83,56 +236,43 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="8dp"
+                    android:layout_marginEnd="@dimen/space_2"
                     android:text="@string/settings_folder_choose"
-                    android:backgroundTint="#3B82F6"
-                    android:textColor="#FFFFFF" />
+                    style="@style/ButtonStyle"/>
 
                 <Button
                     android:id="@+id/btn_reset_folder"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/settings_folder_reset_btn"
-                    android:backgroundTint="#374151"
-                    android:textColor="#9CA3AF" />
+                    style="@style/SecondaryButtonStyle"/>
             </LinearLayout>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/settings_folder_hint"
-                android:textColor="#6B7280"
-                android:textSize="12sp"
-                android:layout_marginTop="8dp" />
         </LinearLayout>
 
         <!-- Section: E-Mail -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/settings_section_email"
-            android:textColor="#60A5FA"
-            android:textSize="12sp"
-            android:textAllCaps="true"
-            android:letterSpacing="0.1"
-            android:layout_marginBottom="12dp" />
+            android:text="@string/settings_section_email_label"
+            style="@style/SectionLabelStyle"
+            android:textAllCaps="true"/>
 
-        <!-- E-Mail card -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="#111827"
-            android:padding="16dp"
-            android:layout_marginBottom="16dp">
+            android:background="@drawable/bg_card"
+            android:padding="@dimen/space_5"
+            android:layout_marginBottom="@dimen/space_6">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/settings_email_label"
-                android:textColor="#9CA3AF"
-                android:textSize="12sp"
-                android:layout_marginBottom="8dp" />
+                android:text="@string/settings_email_hint_desc"
+                android:textColor="@color/cl_ink_soft"
+                android:fontFamily="@font/inter_regular"
+                android:textSize="13sp"
+                android:layout_marginBottom="@dimen/space_3"/>
 
             <EditText
                 android:id="@+id/edit_email"
@@ -140,30 +280,21 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/settings_email_hint"
                 android:inputType="textEmailAddress"
-                android:textColor="#F3F4F6"
-                android:textColorHint="#6B7280"
-                android:background="#1F2937"
-                android:padding="10dp"
-                android:textSize="14sp"
-                android:layout_marginBottom="12dp" />
+                android:textColor="@color/cl_ink"
+                android:textColorHint="@color/cl_ink_soft"
+                android:background="@drawable/bg_edit_text"
+                android:padding="@dimen/space_3"
+                android:fontFamily="@font/inter_regular"
+                android:textSize="15sp"
+                android:layout_marginBottom="@dimen/space_3"/>
 
             <Button
                 android:id="@+id/btn_save_email"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/settings_email_save"
-                android:backgroundTint="#3B82F6"
-                android:textColor="#FFFFFF" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/settings_email_hint_desc"
-                android:textColor="#6B7280"
-                android:textSize="12sp"
-                android:layout_marginTop="8dp" />
+                style="@style/ButtonStyle"/>
         </LinearLayout>
 
     </LinearLayout>
-
 </ScrollView>

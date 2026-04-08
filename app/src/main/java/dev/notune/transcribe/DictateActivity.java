@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -29,30 +30,41 @@ public class DictateActivity extends Activity {
     private boolean       isRecording = false;
     private long          startTimeMs;
 
-    private final Handler        timerHandler = new Handler(Looper.getMainLooper());
-    private final Runnable       timerRunnable = new Runnable() {
+    private final Handler  timerHandler  = new Handler(Looper.getMainLooper());
+    private final Handler  levelHandler  = new Handler(Looper.getMainLooper());
+
+    private final Runnable timerRunnable = new Runnable() {
         @Override public void run() {
             if (!isRecording) return;
-            long elapsed = System.currentTimeMillis() - startTimeMs;
-            long secs    = elapsed / 1000;
-            tvTimer.setText(String.format(Locale.getDefault(),
-                    "%02d:%02d", secs / 60, secs % 60));
+            long secs = (System.currentTimeMillis() - startTimeMs) / 1000;
+            tvTimer.setText(String.format(Locale.getDefault(), "%02d:%02d", secs / 60, secs % 60));
             timerHandler.postDelayed(this, 500);
         }
     };
 
-    private Button   btnRecord;
-    private TextView tvStatus;
-    private TextView tvTimer;
+    private final Runnable levelRunnable = new Runnable() {
+        @Override public void run() {
+            if (!isRecording || recorder == null) return;
+            int amp = recorder.getMaxAmplitude();
+            waveformView.setLevel(amp / 32767f);
+            levelHandler.postDelayed(this, 80);
+        }
+    };
+
+    private Button      btnRecord;
+    private TextView    tvStatus;
+    private TextView    tvTimer;
+    private WaveformView waveformView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dictate_activity);
 
-        btnRecord = findViewById(R.id.btn_record);
-        tvStatus  = findViewById(R.id.tv_status);
-        tvTimer   = findViewById(R.id.tv_timer);
+        btnRecord    = findViewById(R.id.btn_record);
+        tvStatus     = findViewById(R.id.tv_status);
+        tvTimer      = findViewById(R.id.tv_timer);
+        waveformView = findViewById(R.id.waveform_view);
 
         findViewById(R.id.btn_close).setOnClickListener(v -> finish());
 
@@ -63,8 +75,7 @@ public class DictateActivity extends Activity {
     }
 
     private void startRecording() {
-        String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
-                .format(new Date());
+        String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         outputFile = new File(getCacheDir(), "diktat_" + ts + ".m4a");
 
         recorder = new MediaRecorder();
@@ -87,29 +98,34 @@ public class DictateActivity extends Activity {
 
         isRecording = true;
         startTimeMs = System.currentTimeMillis();
-        tvStatus.setText(getString(R.string.dictate_recording));
+
+        // UI: red round button
+        btnRecord.setBackground(getDrawable(R.drawable.bg_round_button_recording));
         btnRecord.setText(getString(R.string.dictate_btn_stop));
-        btnRecord.setBackgroundTintList(
-                getColorStateList(android.R.color.holo_red_light));
+        tvStatus.setText(getString(R.string.dictate_recording));
         tvTimer.setText("00:00");
+
+        // Show waveform and start animation + level polling
+        waveformView.setVisibility(View.VISIBLE);
         timerHandler.post(timerRunnable);
+        levelHandler.postDelayed(levelRunnable, 80);
     }
 
     private void stopAndTranscribe() {
         timerHandler.removeCallbacks(timerRunnable);
+        levelHandler.removeCallbacks(levelRunnable);
         isRecording = false;
 
-        try {
-            recorder.stop();
-        } catch (Exception e) {
-            Log.w(TAG, "stop() failed: " + e.getMessage());
-        }
+        try { recorder.stop(); } catch (Exception e) { Log.w(TAG, "stop: " + e.getMessage()); }
         releaseRecorder();
+
+        // Reset UI
+        waveformView.setVisibility(View.INVISIBLE);
+        btnRecord.setBackground(getDrawable(R.drawable.bg_round_button));
+        btnRecord.setText(getString(R.string.dictate_btn_start));
 
         if (outputFile == null || !outputFile.exists() || outputFile.length() == 0) {
             tvStatus.setText(getString(R.string.dictate_error_empty));
-            btnRecord.setText(getString(R.string.dictate_btn_start));
-            btnRecord.setBackgroundTintList(null);
             return;
         }
 
@@ -123,19 +139,15 @@ public class DictateActivity extends Activity {
     }
 
     private void releaseRecorder() {
-        if (recorder != null) {
-            recorder.release();
-            recorder = null;
-        }
+        if (recorder != null) { recorder.release(); recorder = null; }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         timerHandler.removeCallbacks(timerRunnable);
-        if (isRecording) {
-            try { recorder.stop(); } catch (Exception ignored) {}
-        }
+        levelHandler.removeCallbacks(levelRunnable);
+        if (isRecording) try { recorder.stop(); } catch (Exception ignored) {}
         releaseRecorder();
     }
 }

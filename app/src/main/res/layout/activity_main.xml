@@ -2,13 +2,13 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
-    android:padding="16dp">
+    android:background="@color/cl_bg">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="@dimen/space_5">
 
         <!-- Header -->
         <LinearLayout
@@ -16,60 +16,58 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="8dp">
+            android:layout_marginTop="@dimen/space_4"
+            android:layout_marginBottom="@dimen/space_5">
 
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="TRANSKR!PT"
-                android:textSize="28sp"
+                android:textSize="26sp"
+                android:fontFamily="@font/poppins_semibold"
                 android:textStyle="bold"
-                android:textColor="@color/textPrimary"/>
+                android:textColor="@color/cl_ink"/>
 
-            <Button
+            <ImageButton
                 android:id="@+id/btn_settings"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/btn_settings"
-                style="@style/ButtonStyle"/>
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@drawable/ic_settings"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/btn_settings"
+                android:padding="10dp"/>
         </LinearLayout>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/welcome_subtitle"
-            android:textSize="16sp"
-            android:textColor="@color/textSecondary"
-            android:layout_marginBottom="32dp"/>
-
-        <!-- Permission Card (Visible if needed) -->
+        <!-- Permissions card (shown only if mic permission missing) -->
         <LinearLayout
             android:id="@+id/card_permissions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/bg_card"
-            android:elevation="4dp"
-            android:layout_marginBottom="16dp"
+            android:padding="@dimen/space_5"
+            android:layout_marginBottom="@dimen/space_4"
             android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/perm_mic_title"
-                android:textSize="18sp"
+                android:textSize="16sp"
+                android:fontFamily="@font/poppins_semibold"
                 android:textStyle="bold"
-                android:textColor="@color/record_red"
-                android:layout_marginBottom="8dp"/>
+                android:textColor="@color/cl_red"
+                android:layout_marginBottom="@dimen/space_2"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/perm_mic_desc"
-                android:textColor="@color/textSecondary"
-                android:layout_marginBottom="16dp"/>
+                android:fontFamily="@font/inter_regular"
+                android:textColor="@color/cl_ink_soft"
+                android:textSize="14sp"
+                android:layout_marginBottom="@dimen/space_4"/>
 
             <Button
                 android:id="@+id/btn_grant_perms"
@@ -77,311 +75,88 @@
                 android:layout_height="wrap_content"
                 android:text="@string/btn_grant"
                 style="@style/ButtonStyle"
-                android:backgroundTint="@color/record_red"/>
+                android:backgroundTint="@color/cl_red"/>
         </LinearLayout>
 
-        <!-- IME Card -->
+        <!-- IME: single button, no header -->
+        <Button
+            android:id="@+id/btn_ime_settings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="1. Tastatureinstellungen öffnen"
+            style="@style/SecondaryButtonStyle"
+            android:layout_marginBottom="@dimen/space_4"/>
+
+        <!-- Diktieren card -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/bg_card"
-            android:elevation="4dp"
-            android:layout_marginBottom="16dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="12dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/section_ime"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/textPrimary"/>
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@android:drawable/ic_btn_speak_now"
-                    android:tint="@color/colorPrimary"/>
-            </LinearLayout>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/desc_ime"
-                android:textColor="@color/textSecondary"
-                android:layout_marginBottom="16dp"/>
-
-            <Button
-                android:id="@+id/btn_ime_settings"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/btn_ime_settings"
-                style="@style/ButtonStyle"/>
-        </LinearLayout>
-
-        <!-- Settings Card -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/bg_card"
-            android:elevation="4dp"
-            android:layout_marginBottom="16dp">
+            android:padding="@dimen/space_5"
+            android:layout_marginBottom="@dimen/space_4">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/section_settings"
-                android:textSize="20sp"
+                android:text="@string/section_dictate"
+                android:textSize="18sp"
+                android:fontFamily="@font/poppins_semibold"
                 android:textStyle="bold"
-                android:textColor="@color/textPrimary"
-                android:layout_marginBottom="12dp"/>
+                android:textColor="@color/cl_ink"
+                android:layout_marginBottom="@dimen/space_3"/>
 
-            <!-- Auto-record -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginEnd="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/setting_auto_record"
-                        android:textSize="16sp"
-                        android:textColor="@color/textPrimary"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/setting_auto_record_desc"
-                        android:textSize="13sp"
-                        android:textColor="@color/textSecondary"
-                        android:layout_marginTop="4dp"/>
-                </LinearLayout>
-
-                <Switch
-                    android:id="@+id/switch_auto_record"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-            </LinearLayout>
-
-            <!-- Pause audio -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="16dp">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginEnd="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/setting_pause_audio"
-                        android:textSize="16sp"
-                        android:textColor="@color/textPrimary"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/setting_pause_audio_desc"
-                        android:textSize="13sp"
-                        android:textColor="@color/textSecondary"
-                        android:layout_marginTop="4dp"/>
-                </LinearLayout>
-
-                <Switch
-                    android:id="@+id/switch_pause_audio"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-            </LinearLayout>
-
-            <!-- Select transcription -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="16dp">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginEnd="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/setting_select_transcription"
-                        android:textSize="16sp"
-                        android:textColor="@color/textPrimary"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/setting_select_transcription_desc"
-                        android:textSize="13sp"
-                        android:textColor="@color/textSecondary"
-                        android:layout_marginTop="4dp"/>
-                </LinearLayout>
-
-                <Switch
-                    android:id="@+id/switch_select_transcription"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
-            </LinearLayout>
-
-            <!-- Save Folder Row -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginTop="16dp">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:layout_marginEnd="16dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/setting_save_folder"
-                        android:textSize="16sp"
-                        android:textColor="@color/textPrimary"/>
-
-                    <TextView
-                        android:id="@+id/text_save_folder"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/setting_save_folder_default"
-                        android:textSize="13sp"
-                        android:textColor="@color/textSecondary"
-                        android:layout_marginTop="4dp"/>
-                </LinearLayout>
+                android:orientation="horizontal">
 
                 <Button
-                    android:id="@+id/btn_save_settings"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/btn_dictate"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/btn_save_settings"
-                    style="@style/ButtonStyle"/>
+                    android:layout_weight="1"
+                    android:text="@string/btn_dictate"
+                    style="@style/ButtonStyle"
+                    android:layout_marginEnd="@dimen/space_2"/>
+
+                <Button
+                    android:id="@+id/btn_recordings_manager"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/btn_recordings_manager"
+                    style="@style/SecondaryButtonStyle"/>
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Diktieren Card -->
+        <!-- Audiodatei transkribieren card -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/bg_card"
-            android:elevation="4dp"
-            android:layout_marginBottom="16dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="12dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/section_dictate"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/textPrimary"/>
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@android:drawable/ic_btn_speak_now"
-                    android:tint="@color/record_red"/>
-            </LinearLayout>
+            android:padding="@dimen/space_5"
+            android:layout_marginBottom="@dimen/space_4">
 
             <TextView
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/desc_dictate"
-                android:textColor="@color/textSecondary"
-                android:layout_marginBottom="16dp"/>
-
-            <Button
-                android:id="@+id/btn_dictate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/btn_dictate"
-                style="@style/ButtonStyle"
-                android:backgroundTint="@color/record_red"/>
-        </LinearLayout>
-
-        <!-- Transcribe File Card -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="@drawable/bg_card"
-            android:elevation="4dp"
-            android:layout_marginBottom="16dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="12dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Audiodatei transkribieren"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/textPrimary"/>
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@android:drawable/ic_menu_upload"
-                    android:tint="@color/colorPrimary"/>
-            </LinearLayout>
+                android:text="Audiodatei transkribieren"
+                android:textSize="18sp"
+                android:fontFamily="@font/poppins_semibold"
+                android:textStyle="bold"
+                android:textColor="@color/cl_ink"
+                android:layout_marginBottom="@dimen/space_2"/>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Audiodatei vom Gerät wählen und offline transkribieren."
-                android:textColor="@color/textSecondary"
-                android:layout_marginBottom="16dp"/>
+                android:fontFamily="@font/inter_regular"
+                android:textColor="@color/cl_ink_soft"
+                android:textSize="14sp"
+                android:layout_marginBottom="@dimen/space_4"/>
 
             <Button
                 android:id="@+id/btn_transcribe_file"
@@ -391,44 +166,33 @@
                 style="@style/ButtonStyle"/>
         </LinearLayout>
 
-        <!-- Subtitles Card -->
+        <!-- Live-Untertitel card -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/bg_card"
-            android:elevation="4dp"
-            android:layout_marginBottom="24dp">
+            android:padding="@dimen/space_5"
+            android:layout_marginBottom="@dimen/space_5">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="12dp">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/section_subs"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/textPrimary"/>
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@android:drawable/ic_media_play"
-                    android:tint="@color/colorAccent"/>
-            </LinearLayout>
+                android:text="@string/section_subs"
+                android:textSize="18sp"
+                android:fontFamily="@font/poppins_semibold"
+                android:textStyle="bold"
+                android:textColor="@color/cl_ink"
+                android:layout_marginBottom="@dimen/space_2"/>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/desc_subs"
-                android:textColor="@color/textSecondary"
-                android:layout_marginBottom="16dp"/>
+                android:fontFamily="@font/inter_regular"
+                android:textColor="@color/cl_ink_soft"
+                android:textSize="14sp"
+                android:layout_marginBottom="@dimen/space_4"/>
 
             <Button
                 android:id="@+id/btn_subs_start"
@@ -436,18 +200,20 @@
                 android:layout_height="wrap_content"
                 android:text="@string/btn_subs_start"
                 style="@style/ButtonStyle"
-                android:backgroundTint="@color/colorAccent"/>
+                android:backgroundTint="@color/cl_green"/>
         </LinearLayout>
 
-        <!-- Status Footer -->
+        <!-- Status -->
         <TextView
             android:id="@+id/text_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Status: Checking..."
+            android:text="Status: Prüfe…"
             android:gravity="center"
-            android:textColor="@color/textSecondary"
-            android:textSize="14sp"/>
+            android:fontFamily="@font/inter_regular"
+            android:textColor="@color/cl_ink_soft"
+            android:textSize="13sp"
+            android:layout_marginBottom="@dimen/space_4"/>
 
     </LinearLayout>
 </ScrollView>

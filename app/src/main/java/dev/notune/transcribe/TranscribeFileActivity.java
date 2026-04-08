@@ -23,8 +23,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 public class TranscribeFileActivity extends Activity {
 
@@ -349,17 +348,26 @@ public class TranscribeFileActivity extends Activity {
         int sampleRate   = inputFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
         int channelCount = inputFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
 
+        // Pre-allocate a single buffer based on duration to avoid double-buffering.
+        // The old approach (List<float[]> + mergeChunks) used 2x the memory peak.
+        int estimatedSamples = TARGET_SAMPLE_RATE * 120; // fallback: 2 minutes
+        if (inputFormat.containsKey(MediaFormat.KEY_DURATION)) {
+            long durationUs = inputFormat.getLong(MediaFormat.KEY_DURATION);
+            double srcSamples = (durationUs / 1_000_000.0) * sampleRate;
+            estimatedSamples = (int) (srcSamples * TARGET_SAMPLE_RATE / (double) sampleRate * 1.05 + 0.5);
+            if (estimatedSamples < TARGET_SAMPLE_RATE * 5) estimatedSamples = TARGET_SAMPLE_RATE * 5;
+        }
+        float[] sampleBuf = new float[estimatedSamples];
+        int writtenSamples = 0;
+
         MediaCodec codec = MediaCodec.createDecoderByType(
                 inputFormat.getString(MediaFormat.KEY_MIME));
         codec.configure(inputFormat, null, null, 0);
         codec.start();
 
-        // Track actual output format; may be updated on INFO_OUTPUT_FORMAT_CHANGED
         int[]     outChannels = {channelCount};
         boolean[] isPcmFloat  = {false};
 
-        List<float[]> allChunks  = new ArrayList<>();
-        int totalSamples = 0;
         MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
         boolean inputDone  = false;
         boolean outputDone = false;
@@ -387,10 +395,8 @@ public class TranscribeFileActivity extends Activity {
                 MediaFormat outFmt = codec.getOutputFormat();
                 if (outFmt.containsKey(MediaFormat.KEY_CHANNEL_COUNT))
                     outChannels[0] = outFmt.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
-                if (outFmt.containsKey(MediaFormat.KEY_PCM_ENCODING)) {
-                    // AudioFormat.ENCODING_PCM_FLOAT == 4
+                if (outFmt.containsKey(MediaFormat.KEY_PCM_ENCODING))
                     isPcmFloat[0] = outFmt.getInteger(MediaFormat.KEY_PCM_ENCODING) == 4;
-                }
             } else if (outIdx >= 0) {
                 if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
                     outputDone = true;
@@ -400,36 +406,38 @@ public class TranscribeFileActivity extends Activity {
                     outBuf.limit(bufferInfo.offset + bufferInfo.size);
                     outBuf.order(ByteOrder.LITTLE_ENDIAN);
                     int ch = outChannels[0];
-                    float[] chunk;
+                    int monoCount;
                     if (isPcmFloat[0]) {
                         FloatBuffer fb = outBuf.asFloatBuffer();
-                        int monoCount = fb.remaining() / ch;
-                        chunk = new float[monoCount];
+                        monoCount = fb.remaining() / ch;
+                        if (writtenSamples + monoCount > sampleBuf.length)
+                            sampleBuf = Arrays.copyOf(sampleBuf,
+                                    Math.max(sampleBuf.length * 2, writtenSamples + monoCount));
                         for (int i = 0; i < monoCount; i++) {
                             if (ch == 1) {
-                                chunk[i] = fb.get();
+                                sampleBuf[writtenSamples++] = fb.get();
                             } else {
                                 float sum = 0;
                                 for (int c = 0; c < ch; c++) sum += fb.get();
-                                chunk[i] = sum / ch;
+                                sampleBuf[writtenSamples++] = sum / ch;
                             }
                         }
                     } else {
                         ShortBuffer sb = outBuf.asShortBuffer();
-                        int monoCount = sb.remaining() / ch;
-                        chunk = new float[monoCount];
+                        monoCount = sb.remaining() / ch;
+                        if (writtenSamples + monoCount > sampleBuf.length)
+                            sampleBuf = Arrays.copyOf(sampleBuf,
+                                    Math.max(sampleBuf.length * 2, writtenSamples + monoCount));
                         for (int i = 0; i < monoCount; i++) {
                             if (ch == 1) {
-                                chunk[i] = sb.get() / 32768.0f;
+                                sampleBuf[writtenSamples++] = sb.get() / 32768.0f;
                             } else {
                                 float sum = 0;
                                 for (int c = 0; c < ch; c++) sum += sb.get() / 32768.0f;
-                                chunk[i] = sum / ch;
+                                sampleBuf[writtenSamples++] = sum / ch;
                             }
                         }
                     }
-                    allChunks.add(chunk);
-                    totalSamples += chunk.length;
                 }
                 codec.releaseOutputBuffer(outIdx, false);
             }
@@ -437,20 +445,18 @@ public class TranscribeFileActivity extends Activity {
         codec.stop(); codec.release();
         extractor.release();
 
-        float[] mono = mergeChunks(allChunks, totalSamples);
+        // Trim to actual size only if significantly over-allocated (> 5% waste)
+        float[] mono;
+        if (writtenSamples < sampleBuf.length * 0.95) {
+            mono = Arrays.copyOf(sampleBuf, writtenSamples);
+            sampleBuf = null; // help GC
+        } else {
+            mono = sampleBuf;
+        }
+
         if (sampleRate != TARGET_SAMPLE_RATE)
             mono = resample(mono, sampleRate, TARGET_SAMPLE_RATE);
         return mono;
-    }
-
-    private float[] mergeChunks(List<float[]> chunks, int total) {
-        float[] result = new float[total];
-        int offset = 0;
-        for (float[] c : chunks) {
-            System.arraycopy(c, 0, result, offset, c.length);
-            offset += c.length;
-        }
-        return result;
     }
 
     private float[] resample(float[] input, int from, int to) {

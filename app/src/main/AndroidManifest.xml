@@ -59,16 +59,20 @@
         <activity
             android:name=".DictateActivity"
             android:exported="false"
-            android:excludeFromRecents="true"
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar" />
+            android:excludeFromRecents="true" />
+
+        <!-- Recordings manager -->
+        <activity
+            android:name=".RecordingsManagerActivity"
+            android:exported="false"
+            android:excludeFromRecents="true" />
 
         <!-- Transcribe shared audio file -->
         <activity
             android:name=".TranscribeFileActivity"
             android:exported="true"
             android:excludeFromRecents="true"
-            android:launchMode="singleTask"
-            android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />

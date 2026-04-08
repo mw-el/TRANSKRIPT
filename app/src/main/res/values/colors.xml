@@ -1,12 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#2196F3</color>
-    <color name="colorPrimaryDark">#1976D2</color>
-    <color name="colorAccent">#FF4081</color>
-    <color name="background">#F8F9FA</color>
-    <color name="textPrimary">#212121</color>
-    <color name="textSecondary">#757575</color>
+    <!-- Claude/Anthropic-inspired warm neutral palette -->
+    <color name="cl_bg">#F5F1EA</color>
+    <color name="cl_surface">#FBF7F2</color>
+    <color name="cl_surface2">#EFE7DD</color>
+    <color name="cl_panel">#E7DDD2</color>
+    <color name="cl_ink">#241417</color>
+    <color name="cl_ink_soft">#6E625C</color>
+    <color name="cl_border">#D8CDC2</color>
+    <color name="cl_accent">#E07A43</color>
+    <color name="cl_accent_hover">#C96836</color>
+    <color name="cl_accent2">#35759D</color>
+    <color name="cl_green">#738E39</color>
+    <color name="cl_red">#D85A5A</color>
+    <color name="cl_yellow">#D9B24B</color>
     <color name="white">#FFFFFF</color>
-    <color name="record_red">#F44336</color>
     <color name="overlay_bg">#99000000</color>
+
+    <!-- Aliases for backward compatibility -->
+    <color name="colorPrimary">#E07A43</color>
+    <color name="colorPrimaryDark">#C96836</color>
+    <color name="colorAccent">#738E39</color>
+    <color name="background">#F5F1EA</color>
+    <color name="textPrimary">#241417</color>
+    <color name="textSecondary">#6E625C</color>
+    <color name="record_red">#D85A5A</color>
 </resources>

@@ -10,10 +10,8 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Switch;
-import java.io.File;
-import java.io.IOException;
 
 public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
@@ -31,62 +29,43 @@ public class MainActivity extends Activity {
         System.loadLibrary("android_transcribe_app");
     }
 
-    private TextView statusText;
-    private Button   grantButton;
-    private View     permsCard;
-    private Button   startSubsButton;
-    private Button   transcribeFileButton;
-    private Button   dictateButton;
+    private TextView  statusText;
+    private View      permsCard;
+    private Button    grantButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        statusText           = findViewById(R.id.text_status);
-        permsCard            = findViewById(R.id.card_permissions);
-        grantButton          = findViewById(R.id.btn_grant_perms);
-        startSubsButton      = findViewById(R.id.btn_subs_start);
-        transcribeFileButton = findViewById(R.id.btn_transcribe_file);
-        dictateButton        = findViewById(R.id.btn_dictate);
-        Button imeSettingsButton = findViewById(R.id.btn_ime_settings);
-        Button settingsButton    = findViewById(R.id.btn_settings);
+        statusText = findViewById(R.id.text_status);
+        permsCard  = findViewById(R.id.card_permissions);
+        grantButton = findViewById(R.id.btn_grant_perms);
 
         grantButton.setOnClickListener(v -> checkAndRequestPermissions());
-        imeSettingsButton.setOnClickListener(v -> {
-            startActivity(new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS));
-        });
-        startSubsButton.setOnClickListener(v ->
-                startActivity(new Intent(this, LiveSubtitleActivity.class)));
-        transcribeFileButton.setOnClickListener(v -> pickAudioFile());
-        dictateButton.setOnClickListener(v ->
-                startActivity(new Intent(this, DictateActivity.class)));
+
+        ImageButton settingsButton = findViewById(R.id.btn_settings);
         settingsButton.setOnClickListener(v ->
                 startActivity(new Intent(this, SettingsActivity.class)));
 
-        Switch autoRecordSwitch = findViewById(R.id.switch_auto_record);
-        File autoRecordFile = new File(getFilesDir(), "auto_record");
-        autoRecordSwitch.setChecked(autoRecordFile.exists());
-        autoRecordSwitch.setOnCheckedChangeListener((b, checked) -> {
-            if (checked) { try { autoRecordFile.createNewFile(); } catch (IOException e) { Log.e(TAG, "", e); } }
-            else autoRecordFile.delete();
-        });
+        Button imeSettingsButton = findViewById(R.id.btn_ime_settings);
+        imeSettingsButton.setOnClickListener(v ->
+                startActivity(new Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)));
 
-        Switch selectTranscriptionSwitch = findViewById(R.id.switch_select_transcription);
-        File selectTranscriptionFile = new File(getFilesDir(), "select_transcription");
-        selectTranscriptionSwitch.setChecked(selectTranscriptionFile.exists());
-        selectTranscriptionSwitch.setOnCheckedChangeListener((b, checked) -> {
-            if (checked) { try { selectTranscriptionFile.createNewFile(); } catch (IOException e) { Log.e(TAG, "", e); } }
-            else selectTranscriptionFile.delete();
-        });
+        Button dictateButton = findViewById(R.id.btn_dictate);
+        dictateButton.setOnClickListener(v ->
+                startActivity(new Intent(this, DictateActivity.class)));
 
-        Switch pauseAudioSwitch = findViewById(R.id.switch_pause_audio);
-        File pauseAudioFile = new File(getFilesDir(), "pause_audio");
-        pauseAudioSwitch.setChecked(pauseAudioFile.exists());
-        pauseAudioSwitch.setOnCheckedChangeListener((b, checked) -> {
-            if (checked) { try { pauseAudioFile.createNewFile(); } catch (IOException e) { Log.e(TAG, "", e); } }
-            else pauseAudioFile.delete();
-        });
+        Button recordingsButton = findViewById(R.id.btn_recordings_manager);
+        recordingsButton.setOnClickListener(v ->
+                startActivity(new Intent(this, RecordingsManagerActivity.class)));
+
+        Button transcribeFileButton = findViewById(R.id.btn_transcribe_file);
+        transcribeFileButton.setOnClickListener(v -> pickAudioFile());
+
+        Button startSubsButton = findViewById(R.id.btn_subs_start);
+        startSubsButton.setOnClickListener(v ->
+                startActivity(new Intent(this, LiveSubtitleActivity.class)));
 
         updatePermissionUI();
         initNative(this);
@@ -128,7 +107,7 @@ public class MainActivity extends Activity {
         intent.setType("audio/*");
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         startActivityForResult(
-                Intent.createChooser(intent, "Choose audio file"), REQ_PICK_AUDIO);
+                Intent.createChooser(intent, "Audiodatei wählen"), REQ_PICK_AUDIO);
     }
 
     @Override
@@ -160,7 +139,6 @@ public class MainActivity extends Activity {
     public void onStatusUpdate(String status) {
         runOnUiThread(() -> {
             statusText.setText("Status: " + status);
-            if ("Ready".equals(status)) startSubsButton.setEnabled(true);
         });
     }
 

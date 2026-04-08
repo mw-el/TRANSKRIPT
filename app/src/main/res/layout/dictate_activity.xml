@@ -3,75 +3,104 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#111827"
+    android:background="@color/cl_bg"
     android:fitsSystemWindows="true"
-    android:padding="24dp">
+    android:padding="@dimen/space_5">
 
-    <ImageButton
-        android:id="@+id/btn_close"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:src="@android:drawable/ic_menu_close_clear_cancel"
-        android:background="#1F2937"
-        android:tint="#9CA3AF"
-        android:contentDescription="@string/btn_close"/>
-
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="16dp">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="@dimen/space_4"
+        android:layout_marginBottom="@dimen/space_2">
 
         <TextView
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="@string/dictate_title"
-            android:textColor="#F3F4F6"
-            android:textSize="26sp"
+            android:textSize="20sp"
+            android:fontFamily="@font/poppins_semibold"
             android:textStyle="bold"
-            android:layout_marginBottom="8dp"/>
+            android:textColor="@color/cl_ink"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/dictate_subtitle"
-            android:textColor="#9CA3AF"
-            android:textSize="14sp"
-            android:gravity="center"
-            android:layout_marginBottom="48dp"/>
-
-        <!-- Timer -->
-        <TextView
-            android:id="@+id/tv_timer"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="00:00"
-            android:textColor="#F3F4F6"
-            android:textSize="48sp"
-            android:fontFamily="monospace"
-            android:layout_marginBottom="32dp"/>
-
-        <!-- Record / Stop button -->
-        <Button
-            android:id="@+id/btn_record"
-            android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:text="@string/dictate_btn_start"
-            android:textSize="18sp"
-            android:textColor="#FFFFFF"
-            android:backgroundTint="#3B82F6"
-            android:layout_marginBottom="32dp"/>
-
-        <!-- Status -->
-        <TextView
-            android:id="@+id/tv_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/dictate_status_idle"
-            android:textColor="#9CA3AF"
-            android:textSize="15sp"
-            android:gravity="center"/>
-
+        <ImageButton
+            android:id="@+id/btn_close"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:tint="@color/cl_ink_soft"
+            android:contentDescription="@string/btn_close"/>
     </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/dictate_subtitle"
+        android:textColor="@color/cl_ink_soft"
+        android:fontFamily="@font/inter_regular"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:layout_marginBottom="@dimen/space_5"/>
+
+    <!-- Spacer to push button to center vertically -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+    <!-- Waveform view (INVISIBLE at rest, VISIBLE during recording) -->
+    <dev.notune.transcribe.WaveformView
+        android:id="@+id/waveform_view"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:visibility="invisible"
+        android:layout_marginBottom="@dimen/space_4"/>
+
+    <!-- Round record button centered -->
+    <Button
+        android:id="@+id/btn_record"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/dictate_btn_start"
+        android:textColor="@color/white"
+        android:fontFamily="@font/poppins_medium"
+        android:textSize="14sp"
+        android:background="@drawable/bg_round_button"
+        android:stateListAnimator="@null"
+        android:layout_marginBottom="@dimen/space_4"/>
+
+    <!-- Timer -->
+    <TextView
+        android:id="@+id/tv_timer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="00:00"
+        android:textColor="@color/cl_ink"
+        android:textSize="36sp"
+        android:fontFamily="monospace"
+        android:layout_marginBottom="@dimen/space_3"/>
+
+    <!-- Status -->
+    <TextView
+        android:id="@+id/tv_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="@string/dictate_status_idle"
+        android:textColor="@color/cl_ink_soft"
+        android:fontFamily="@font/inter_regular"
+        android:textSize="14sp"/>
+
+    <!-- Spacer bottom -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
 </LinearLayout>

@@ -5,10 +5,15 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Settings screen.
@@ -23,7 +28,11 @@ public class SettingsActivity extends Activity {
     public static final String KEY_SAVE_FOLDER_URI = "save_folder_uri";
     public static final String KEY_EMAIL_ADDRESS   = "default_email";
 
-    private static final int REQ_PICK_FOLDER = 301;
+    private static final int    REQ_PICK_FOLDER      = 301;
+    private static final String TAG                  = "SettingsActivity";
+    private static final String FLAG_AUTO_RECORD     = "auto_record";
+    private static final String FLAG_SELECT_TRANSCRIPT = "select_transcription";
+    private static final String FLAG_PAUSE_AUDIO     = "pause_audio";
 
     private TextView folderPathText;
     private EditText emailInput;
@@ -43,6 +52,9 @@ public class SettingsActivity extends Activity {
 
         refreshFolderDisplay();
         loadEmailSetting();
+        bindFlagSwitch(R.id.switch_auto_record,          FLAG_AUTO_RECORD);
+        bindFlagSwitch(R.id.switch_select_transcription, FLAG_SELECT_TRANSCRIPT);
+        bindFlagSwitch(R.id.switch_pause_audio,          FLAG_PAUSE_AUDIO);
 
         chooseFolderButton.setOnClickListener(v -> openFolderPicker());
         resetFolderButton .setOnClickListener(v -> resetFolder());
@@ -117,6 +129,24 @@ public class SettingsActivity extends Activity {
         String saved = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
                 .getString(KEY_EMAIL_ADDRESS, "");
         emailInput.setText(saved);
+    }
+
+    // ------------------------------------------------------------------
+    // Feature flag switches (stored as marker files in getFilesDir())
+    // ------------------------------------------------------------------
+
+    private void bindFlagSwitch(int switchId, String flagName) {
+        Switch sw = findViewById(switchId);
+        if (sw == null) return;
+        File flag = new File(getFilesDir(), flagName);
+        sw.setChecked(flag.exists());
+        sw.setOnCheckedChangeListener((btn, checked) -> {
+            if (checked) {
+                try { flag.createNewFile(); } catch (IOException e) { Log.e(TAG, "flag create", e); }
+            } else {
+                flag.delete();
+            }
+        });
     }
 
     private void saveEmail() {

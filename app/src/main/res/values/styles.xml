@@ -1,20 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:colorPrimary">@color/colorPrimary</item>
-        <item name="android:colorPrimaryDark">@color/colorPrimaryDark</item>
-        <item name="android:colorAccent">@color/colorAccent</item>
-        <item name="android:windowBackground">@color/background</item>
+        <item name="android:colorPrimary">@color/cl_accent</item>
+        <item name="android:colorPrimaryDark">@color/cl_accent_hover</item>
+        <item name="android:colorAccent">@color/cl_green</item>
+        <item name="android:windowBackground">@color/cl_bg</item>
+        <item name="android:textColorPrimary">@color/cl_ink</item>
+        <item name="android:textColorSecondary">@color/cl_ink_soft</item>
     </style>
 
     <style name="CardStyle">
         <item name="android:background">@drawable/bg_card</item>
-        <item name="android:padding">16dp</item>
+        <item name="android:padding">24dp</item>
         <item name="android:layout_marginBottom">16dp</item>
     </style>
-    
+
+    <!-- Primary pill button: orange fill, white text, Poppins Medium -->
     <style name="ButtonStyle" parent="android:Widget.Material.Button.Colored">
-        <item name="android:padding">12dp</item>
+        <item name="android:background">@drawable/bg_button_primary</item>
         <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:fontFamily">@font/poppins_medium</item>
+        <item name="android:stateListAnimator">@null</item>
+    </style>
+
+    <!-- Secondary pill button: transparent fill, border, dark text -->
+    <style name="SecondaryButtonStyle" parent="android:Widget.Material.Button">
+        <item name="android:background">@drawable/bg_button_secondary</item>
+        <item name="android:textColor">@color/cl_ink</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:fontFamily">@font/poppins_medium</item>
+        <item name="android:stateListAnimator">@null</item>
+    </style>
+
+    <!-- Section label style: Inter, 12sp, uppercase, cl_ink_soft -->
+    <style name="SectionLabelStyle">
+        <item name="android:textColor">@color/cl_ink_soft</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:fontFamily">@font/inter_medium</item>
+        <item name="android:layout_marginTop">24dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
     </style>
 </resources>
