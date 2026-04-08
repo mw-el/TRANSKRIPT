@@ -2,28 +2,15 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
-    android:viewportWidth="108"
-    android:viewportHeight="108">
-    <!-- Microphone body -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,28 C49,28 45,32 45,37 L45,54 C45,59 49,63 54,63 C59,63 63,59 63,54 L63,37 C63,32 59,28 54,28 Z"/>
-    <!-- Microphone arc -->
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="3"
-        android:pathData="M38,52 C38,63.5 45,73 54,73 C63,73 70,63.5 70,52"/>
-    <!-- Stand line -->
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="3"
-        android:pathData="M54,73 L54,82"/>
-    <!-- Base -->
-    <path
-        android:fillColor="#00000000"
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="3"
-        android:pathData="M44,82 L64,82"/>
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Speech-to-text Material Symbol. Coordinate system: scaleY=-1 / translateY=-960
+         mirrors the original viewBox="0 -960 960 960". -->
+    <group
+        android:scaleY="-1"
+        android:translateY="-960">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M680,-560q-33,0 -56.5,-23T600,-640v-160q0,-34 23.5,-57t56.5,-23q34,0 57,23t23,57v160q0,34 -23,57t-57,23ZM200,-80q-33,0 -56.5,-23.5T120,-160v-640q0,-33 23.5,-56.5T200,-880h320v80H200v640h440v-80h80v80q0,33 -23.5,56.5T640,-80H200Zm80,-160v-80h280v80H280Zm0,-120v-80h200v80H280Zm440,40h-80v-104q-77,-14 -128.5,-74.5T460,-640h80q0,58 41,99t99,41q59,0 99.5,-41t40.5,-99h80q0,81 -51,141.5T720,-424v104Z"/>
+    </group>
 </vector>

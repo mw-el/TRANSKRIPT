@@ -60,13 +60,15 @@
         <activity
             android:name=".DictateActivity"
             android:exported="false"
-            android:excludeFromRecents="true" />
+            android:excludeFromRecents="true"
+            android:theme="@style/AppDialogTheme" />
 
         <!-- Recordings manager -->
         <activity
             android:name=".RecordingsManagerActivity"
             android:exported="false"
-            android:excludeFromRecents="true" />
+            android:excludeFromRecents="true"
+            android:theme="@style/AppDialogTheme" />
 
         <!-- Transcribe shared audio file -->
         <activity

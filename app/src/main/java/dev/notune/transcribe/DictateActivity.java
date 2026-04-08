@@ -9,7 +9,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.core.content.FileProvider;
@@ -25,10 +25,14 @@ public class DictateActivity extends Activity {
     private static final String TAG       = "DictateActivity";
     private static final String AUTHORITY = "dev.notune.transcribe.fileprovider";
 
+    /** Extra key: timestamp-based base name of the already-saved audio file. */
+    public static final String EXTRA_AUDIO_BASE_NAME = "audio_base_name";
+
     private MediaRecorder recorder;
     private File          outputFile;
     private boolean       isRecording = false;
     private long          startTimeMs;
+    private String        audioBaseName; // timestamp base name of the saved recording
 
     private final Handler  timerHandler  = new Handler(Looper.getMainLooper());
     private final Handler  levelHandler  = new Handler(Looper.getMainLooper());
@@ -51,9 +55,10 @@ public class DictateActivity extends Activity {
         }
     };
 
-    private Button      btnRecord;
-    private TextView    tvStatus;
-    private TextView    tvTimer;
+    private ImageButton  btnRecord;
+    private TextView     tvStatus;
+    private TextView     tvTimer;
+    private TextView     tvHint;
     private WaveformView waveformView;
 
     @Override
@@ -64,6 +69,7 @@ public class DictateActivity extends Activity {
         btnRecord    = findViewById(R.id.btn_record);
         tvStatus     = findViewById(R.id.tv_status);
         tvTimer      = findViewById(R.id.tv_timer);
+        tvHint       = findViewById(R.id.tv_hint);
         waveformView = findViewById(R.id.waveform_view);
 
         findViewById(R.id.btn_close).setOnClickListener(v -> finish());
@@ -77,13 +83,17 @@ public class DictateActivity extends Activity {
     private void startRecording() {
         String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         outputFile = new File(getCacheDir(), "diktat_" + ts + ".m4a");
+        // Base name uses date format compatible with FileNameHelper (for sorting/grouping)
+        audioBaseName = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.getDefault()).format(new Date());
 
         recorder = new MediaRecorder();
         recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        recorder.setAudioSamplingRate(44100);
-        recorder.setAudioEncodingBitRate(128_000);
+        // Record directly at 16 kHz mono — no resampling needed during transcription
+        recorder.setAudioSamplingRate(16_000);
+        recorder.setAudioChannels(1);
+        recorder.setAudioEncodingBitRate(32_000);
         recorder.setOutputFile(outputFile.getAbsolutePath());
 
         try {
@@ -99,11 +109,12 @@ public class DictateActivity extends Activity {
         isRecording = true;
         startTimeMs = System.currentTimeMillis();
 
-        // UI: red round button
+        // UI: red round button with stop icon
         btnRecord.setBackground(getDrawable(R.drawable.bg_round_button_recording));
-        btnRecord.setText(getString(R.string.dictate_btn_stop));
+        btnRecord.setImageResource(R.drawable.ic_stop);
         tvStatus.setText(getString(R.string.dictate_recording));
         tvTimer.setText("00:00");
+        tvHint.setVisibility(View.VISIBLE);
 
         // Show waveform and start animation + level polling
         waveformView.setVisibility(View.VISIBLE);
@@ -122,18 +133,30 @@ public class DictateActivity extends Activity {
         // Reset UI
         waveformView.setVisibility(View.INVISIBLE);
         btnRecord.setBackground(getDrawable(R.drawable.bg_round_button));
-        btnRecord.setText(getString(R.string.dictate_btn_start));
+        btnRecord.setImageResource(R.drawable.ic_mic);
+        tvHint.setVisibility(View.GONE);
 
         if (outputFile == null || !outputFile.exists() || outputFile.length() == 0) {
             tvStatus.setText(getString(R.string.dictate_error_empty));
             return;
         }
 
+        // Save a copy of the recording to the settings folder with timestamp name.
+        // Do this on a background thread; TranscribeFileActivity handles the rename
+        // after transcription is complete.
+        final File fileToSave = outputFile;
+        final String baseNameToPass = audioBaseName;
+        new Thread(() -> {
+            TranscribeSaver.saveAudioRaw(this, fileToSave, baseNameToPass);
+            // Ignore save errors here — transcription proceeds regardless.
+        }).start();
+
         Uri uri = FileProvider.getUriForFile(this, AUTHORITY, outputFile);
         Intent intent = new Intent(this, TranscribeFileActivity.class);
         intent.setAction(Intent.ACTION_VIEW);
         intent.setDataAndType(uri, "audio/mp4");
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.putExtra(EXTRA_AUDIO_BASE_NAME, audioBaseName);
         startActivity(intent);
         finish();
     }

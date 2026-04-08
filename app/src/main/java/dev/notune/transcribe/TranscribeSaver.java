@@ -137,6 +137,59 @@ public final class TranscribeSaver {
         return FileProvider.getUriForFile(ctx, AUTHORITY, file);
     }
 
+    /**
+     * Copies a raw audio file (any container, e.g. .m4a) to the settings folder
+     * under {@code baseName + ".m4a"}.  Used to persist dictation recordings.
+     */
+    public static SaveResult saveAudioRaw(Context ctx, File source, String baseName) {
+        String fileName = baseName + ".m4a";
+        try {
+            byte[] bytes = readFile(source);
+            Uri folderUri = getCustomFolderUri(ctx);
+            if (folderUri != null) {
+                Uri docUri = writeToDocumentFolderUri(ctx, folderUri, fileName, "audio/mp4", bytes);
+                String loc = "Ordner: " + folderUri.getLastPathSegment();
+                return SaveResult.ok(fileName, docUri, loc);
+            } else {
+                File f = writeToInternalStorageFile(ctx, fileName, bytes);
+                Uri shareUri = FileProvider.getUriForFile(ctx, AUTHORITY, f);
+                return SaveResult.ok(fileName, shareUri, f.getAbsolutePath());
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to save audio", e);
+            String msg = e.getMessage();
+            if (msg == null) msg = e.getClass().getSimpleName();
+            return SaveResult.error(msg);
+        }
+    }
+
+    /**
+     * Renames the audio file {@code oldBaseName + ".m4a"} to {@code newBaseName + ".m4a"}
+     * in the settings folder.  Returns true on success.
+     */
+    public static boolean renameAudio(Context ctx, String oldBaseName, String newBaseName) {
+        String oldName = oldBaseName + ".m4a";
+        String newName = newBaseName + ".m4a";
+        try {
+            Uri folderUri = getCustomFolderUri(ctx);
+            if (folderUri != null) {
+                DocumentFile dir = DocumentFile.fromTreeUri(ctx, folderUri);
+                if (dir == null) return false;
+                DocumentFile f = dir.findFile(oldName);
+                if (f == null) return false;
+                return f.renameTo(newName);
+            } else {
+                File dir = new File(ctx.getFilesDir(), DEFAULT_DIR);
+                File oldFile = new File(dir, oldName);
+                File newFile = new File(dir, newName);
+                return oldFile.renameTo(newFile);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "renameAudio", e);
+            return false;
+        }
+    }
+
     // ------------------------------------------------------------------
     // Internal helpers
     // ------------------------------------------------------------------

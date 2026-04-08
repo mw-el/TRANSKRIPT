@@ -168,19 +168,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="3dp"
-                android:layout_marginEnd="3dp"
                 android:text="@string/transcript_share"
-                android:visibility="gone"
-                style="@style/SecondaryButtonStyle"
-                android:textSize="12sp"/>
-
-            <Button
-                android:id="@+id/btn_mail"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="3dp"
-                android:text="@string/transcript_mail"
                 android:visibility="gone"
                 style="@style/SecondaryButtonStyle"
                 android:textSize="12sp"/>

@@ -37,13 +37,12 @@
     </LinearLayout>
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/dictate_subtitle"
         android:textColor="@color/cl_ink_soft"
         android:fontFamily="@font/inter_regular"
         android:textSize="14sp"
-        android:gravity="center"
         android:layout_marginBottom="@dimen/space_5"/>
 
     <!-- Spacer to push button to center vertically -->
@@ -61,16 +60,16 @@
         android:layout_marginBottom="@dimen/space_4"/>
 
     <!-- Round record button centered -->
-    <Button
+    <ImageButton
         android:id="@+id/btn_record"
         android:layout_width="120dp"
         android:layout_height="120dp"
         android:layout_gravity="center_horizontal"
-        android:text="@string/dictate_btn_start"
-        android:textColor="@color/white"
-        android:fontFamily="@font/poppins_medium"
-        android:textSize="14sp"
+        android:src="@drawable/ic_mic"
+        android:scaleType="centerInside"
+        android:padding="24dp"
         android:background="@drawable/bg_round_button"
+        android:contentDescription="@string/dictate_btn_start"
         android:stateListAnimator="@null"
         android:layout_marginBottom="@dimen/space_4"/>
 
@@ -84,7 +83,7 @@
         android:textColor="@color/cl_ink"
         android:textSize="36sp"
         android:fontFamily="monospace"
-        android:layout_marginBottom="@dimen/space_3"/>
+        android:layout_marginBottom="@dimen/space_2"/>
 
     <!-- Status -->
     <TextView
@@ -95,7 +94,21 @@
         android:text="@string/dictate_status_idle"
         android:textColor="@color/cl_ink_soft"
         android:fontFamily="@font/inter_regular"
-        android:textSize="14sp"/>
+        android:textSize="14sp"
+        android:layout_marginBottom="@dimen/space_2"/>
+
+    <!-- Hint shown during recording -->
+    <TextView
+        android:id="@+id/tv_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center"
+        android:text="Zum Stoppen und Transkribieren einfach Stopp-Taste klicken"
+        android:textColor="@color/cl_ink_soft"
+        android:fontFamily="@font/inter_regular"
+        android:textSize="13sp"
+        android:visibility="gone"/>
 
     <!-- Spacer bottom -->
     <View

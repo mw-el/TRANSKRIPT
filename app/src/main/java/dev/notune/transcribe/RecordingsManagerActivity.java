@@ -64,7 +64,7 @@ public class RecordingsManagerActivity extends Activity {
             this.internalFile = null; this.safFile = df;
             this.uri = df.getUri();
         }
-        boolean isAudio() { return "ogg".equals(ext); }
+        boolean isAudio() { return "ogg".equals(ext) || "m4a".equals(ext); }
         boolean isText()  { return "txt".equals(ext); }
     }
 
@@ -484,12 +484,12 @@ public class RecordingsManagerActivity extends Activity {
         return null;
     }
 
-    /** Split "basename.ext" → ["basename", "ext"], only for ogg/txt. */
+    /** Split "basename.ext" → ["basename", "ext"], only for ogg/m4a/txt. */
     private static String[] splitNameExt(String name) {
         int dot = name.lastIndexOf('.');
         if (dot < 1) return null;
         String ext = name.substring(dot + 1).toLowerCase();
-        if (!ext.equals("ogg") && !ext.equals("txt")) return null;
+        if (!ext.equals("ogg") && !ext.equals("m4a") && !ext.equals("txt")) return null;
         return new String[]{name.substring(0, dot), ext};
     }
 

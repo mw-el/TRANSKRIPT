@@ -2,11 +2,23 @@
 <resources>
     <style name="AppTheme" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:colorPrimary">@color/cl_accent</item>
-        <item name="android:colorPrimaryDark">@color/cl_accent_hover</item>
+        <item name="android:colorPrimaryDark">@color/cl_bg</item>
         <item name="android:colorAccent">@color/cl_green</item>
         <item name="android:windowBackground">@color/cl_bg</item>
         <item name="android:textColorPrimary">@color/cl_ink</item>
         <item name="android:textColorSecondary">@color/cl_ink_soft</item>
+        <item name="android:statusBarColor">@color/cl_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+
+    <style name="AppDialogTheme" parent="android:Theme.Material.Light.Dialog.NoActionBar">
+        <item name="android:colorPrimary">@color/cl_accent</item>
+        <item name="android:colorAccent">@color/cl_green</item>
+        <item name="android:windowBackground">@color/cl_bg</item>
+        <item name="android:textColorPrimary">@color/cl_ink</item>
+        <item name="android:textColorSecondary">@color/cl_ink_soft</item>
+        <item name="android:windowMinWidthMajor">92%</item>
+        <item name="android:windowMinWidthMinor">92%</item>
     </style>
 
     <style name="CardStyle">

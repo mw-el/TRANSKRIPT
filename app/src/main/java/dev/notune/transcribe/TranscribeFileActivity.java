@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
@@ -50,10 +49,12 @@ public class TranscribeFileActivity extends Activity {
     private Button      saveButton;
     private Button      openButton;
     private Button      shareButton;
-    private Button      mailButton;
 
     private Uri    savedUri;       // content:// of auto-saved .txt
     private String savedFileName;  // display name
+
+    /** Timestamp-based base name of the audio file saved by DictateActivity, or null. */
+    private String pendingAudioBaseName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +72,8 @@ public class TranscribeFileActivity extends Activity {
         saveButton    = findViewById(R.id.btn_save);
         openButton    = findViewById(R.id.btn_open);
         shareButton   = findViewById(R.id.btn_share);
-        mailButton    = findViewById(R.id.btn_mail);
+
+        pendingAudioBaseName = getIntent().getStringExtra(DictateActivity.EXTRA_AUDIO_BASE_NAME);
 
         findViewById(R.id.btn_close).setOnClickListener(v -> finish());
 
@@ -91,15 +93,12 @@ public class TranscribeFileActivity extends Activity {
         shareButton.setOnClickListener(v -> {
             String text = resultText.getText().toString();
             if (text.isEmpty()) return;
-            // Share as plain text via Android share sheet
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.setType("text/plain");
             intent.putExtra(Intent.EXTRA_TEXT, text);
             startActivity(Intent.createChooser(intent,
                     getString(R.string.transcript_share_title)));
         });
-
-        mailButton.setOnClickListener(v -> sendByEmail());
 
         startDecodeAndTranscribe();
     }
@@ -108,33 +107,6 @@ public class TranscribeFileActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         cleanupNative();
-    }
-
-    // ------------------------------------------------------------------
-    // E-mail
-    // ------------------------------------------------------------------
-
-    private void sendByEmail() {
-        String text = resultText.getText().toString();
-        if (text.isEmpty()) return;
-
-        SharedPreferences prefs = getSharedPreferences(
-                SettingsActivity.PREFS_NAME, MODE_PRIVATE);
-        String defaultEmail = prefs.getString(SettingsActivity.KEY_EMAIL_ADDRESS, "");
-
-        Intent intent = new Intent(Intent.ACTION_SENDTO);
-        intent.setData(Uri.parse("mailto:"));
-        if (!defaultEmail.isEmpty())
-            intent.putExtra(Intent.EXTRA_EMAIL, new String[]{defaultEmail});
-        intent.putExtra(Intent.EXTRA_SUBJECT,
-                getString(R.string.mail_subject_prefix) + " "
-                        + java.time.LocalDate.now());
-        intent.putExtra(Intent.EXTRA_TEXT, text);
-
-        if (intent.resolveActivity(getPackageManager()) != null)
-            startActivity(intent);
-        else
-            Toast.makeText(this, getString(R.string.mail_no_app), Toast.LENGTH_SHORT).show();
     }
 
     // ------------------------------------------------------------------
@@ -217,17 +189,22 @@ public class TranscribeFileActivity extends Activity {
             copyButton  .setVisibility(View.VISIBLE);
             saveButton  .setVisibility(View.VISIBLE);
             shareButton .setVisibility(View.VISIBLE);
-            mailButton  .setVisibility(View.VISIBLE);
             resultText  .setText(text);
 
             // Auto-copy
             ClipboardManager cb = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
             cb.setPrimaryClip(ClipData.newPlainText("Transcription", text));
 
-            // Auto-save transcript and show path + Öffnen button
+            // Auto-save transcript and — if coming from DictateActivity — rename the audio file
+            final String audioBase = pendingAudioBaseName;
             new Thread(() -> {
                 TranscribeSaver.SaveResult r =
                         TranscribeSaver.saveTranscriptRich(this, text);
+                // Rename audio file from timestamp name to slug name
+                if (audioBase != null && r.isSuccess()) {
+                    String slugBase = FileNameHelper.buildBaseName(text);
+                    TranscribeSaver.renameAudio(this, audioBase, slugBase);
+                }
                 runOnUiThread(() -> {
                     if (r.isSuccess()) {
                         savedUri = r.shareUri;
