@@ -32,24 +32,66 @@ public final class TranscribeSaver {
 
     private TranscribeSaver() {}
 
+    /**
+     * Rich save result: display name, shareable content URI (for opening/sharing),
+     * human-readable location string (for UI), and whether an error occurred.
+     */
+    public static final class SaveResult {
+        public final String displayName;
+        public final Uri    shareUri;
+        public final String location;
+        public final String errorMessage;
+
+        private SaveResult(String displayName, Uri shareUri, String location, String err) {
+            this.displayName  = displayName;
+            this.shareUri     = shareUri;
+            this.location     = location;
+            this.errorMessage = err;
+        }
+        public static SaveResult ok(String name, Uri uri, String location) {
+            return new SaveResult(name, uri, location, null);
+        }
+        public static SaveResult error(String msg) {
+            return new SaveResult(null, null, null, msg);
+        }
+        public boolean isSuccess() { return errorMessage == null; }
+    }
+
     // ------------------------------------------------------------------
     // Public API
     // ------------------------------------------------------------------
 
     /** Saves transcript text as UTF-8 .txt. Returns display name or null. */
     public static String saveTranscript(Context ctx, String text) {
+        SaveResult r = saveTranscriptRich(ctx, text);
+        return r.isSuccess() ? r.displayName : null;
+    }
+
+    /**
+     * Saves transcript text as UTF-8 .txt, returning rich result
+     * (display name, shareable URI, human-readable location, or error message).
+     */
+    public static SaveResult saveTranscriptRich(Context ctx, String text) {
         String baseName = FileNameHelper.buildBaseName(text);
         String fileName = baseName + ".txt";
         byte[] bytes    = text.getBytes(StandardCharsets.UTF_8);
         try {
             Uri folderUri = getCustomFolderUri(ctx);
-            if (folderUri != null)
-                return writeToDocumentFolder(ctx, folderUri, fileName, "text/plain", bytes);
-            else
-                return writeToInternalStorage(ctx, fileName, bytes);
-        } catch (IOException e) {
+            if (folderUri != null) {
+                Uri docUri = writeToDocumentFolderUri(ctx, folderUri, fileName, "text/plain", bytes);
+                String loc = "Ordner: " + folderUri.getLastPathSegment();
+                return SaveResult.ok(fileName, docUri, loc);
+            } else {
+                File f = writeToInternalStorageFile(ctx, fileName, bytes);
+                Uri shareUri = FileProvider.getUriForFile(ctx, AUTHORITY, f);
+                String loc = "App-Speicher: " + f.getAbsolutePath();
+                return SaveResult.ok(fileName, shareUri, loc);
+            }
+        } catch (Exception e) {
             Log.e(TAG, "Failed to save transcript", e);
-            return null;
+            String msg = e.getMessage();
+            if (msg == null) msg = e.getClass().getSimpleName();
+            return SaveResult.error(msg);
         }
     }
 
@@ -110,6 +152,13 @@ public final class TranscribeSaver {
     private static String writeToDocumentFolder(
             Context ctx, Uri treeUri, String fileName, String mime, byte[] data)
             throws IOException {
+        writeToDocumentFolderUri(ctx, treeUri, fileName, mime, data);
+        return fileName;
+    }
+
+    private static Uri writeToDocumentFolderUri(
+            Context ctx, Uri treeUri, String fileName, String mime, byte[] data)
+            throws IOException {
         DocumentFile dir = DocumentFile.fromTreeUri(ctx, treeUri);
         if (dir == null || !dir.canWrite())
             throw new IOException("Cannot write to folder: " + treeUri);
@@ -121,18 +170,25 @@ public final class TranscribeSaver {
             if (out == null) throw new IOException("No output stream for: " + fileName);
             out.write(data);
         }
-        return fileName;
+        return newFile.getUri();
     }
 
     private static String writeToInternalStorage(Context ctx, String fileName, byte[] data)
             throws IOException {
+        writeToInternalStorageFile(ctx, fileName, data);
+        return fileName;
+    }
+
+    private static File writeToInternalStorageFile(Context ctx, String fileName, byte[] data)
+            throws IOException {
         File dir = new File(ctx.getFilesDir(), DEFAULT_DIR);
         if (!dir.exists() && !dir.mkdirs())
             throw new IOException("Cannot create dir: " + dir);
-        try (FileOutputStream out = new FileOutputStream(new File(dir, fileName))) {
+        File f = new File(dir, fileName);
+        try (FileOutputStream out = new FileOutputStream(f)) {
             out.write(data);
         }
-        return fileName;
+        return f;
     }
 
     private static byte[] readFile(File f) throws IOException {

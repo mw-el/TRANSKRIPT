@@ -67,6 +67,26 @@
     <string name="settings_email_cleared">E-Mail-Adresse gelöscht</string>
     <string name="error_no_audio">Keine Audiodatei übergeben</string>
 
+    <!-- Transkription – Statusanzeigen -->
+    <string name="status_loading_model">Lade Modell…</string>
+    <string name="status_loading_model_detail">Das Spracherkennungsmodell wird geladen. Das kann beim ersten Start einen Moment dauern.</string>
+    <string name="status_decoding">Audio dekodieren…</string>
+    <string name="status_decoding_detail">Audiodatei wird gelesen und in 16-kHz-Mono umgewandelt.</string>
+    <string name="status_transcribing">Transkribiere…</string>
+    <string name="status_transcribing_detail">Erkenne Sprache aus %1$s Sekunden Audio – bitte warten.</string>
+
+    <!-- Transkription – Fehlertexte -->
+    <string name="error_decode">Dekodierungsfehler</string>
+    <string name="error_decode_empty">Fehler: Audiodatei enthält keine Tonspur</string>
+    <string name="error_decode_empty_detail">Der Decoder hat keine Audio-Samples geliefert. Ist die Datei leer oder beschädigt?</string>
+
+    <!-- Gespeichertes Transkript -->
+    <string name="transcript_saved_at">Gespeichert als %1$s\n%2$s</string>
+    <string name="transcript_open">Öffnen</string>
+    <string name="transcript_open_with">Öffnen mit</string>
+    <string name="transcript_no_saved">Kein gespeichertes Transkript</string>
+    <string name="transcript_open_error">Konnte Datei nicht öffnen</string>
+
     <!-- Diktieren -->
     <string name="section_dictate">Diktieren</string>
     <string name="desc_dictate">Sprache aufnehmen und danach offline transkribieren.</string>

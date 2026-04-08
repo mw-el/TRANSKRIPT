@@ -31,32 +31,53 @@ public class TranscribeFileActivity extends Activity {
     private static final String TAG              = "TranscribeFileActivity";
     private static final int    TARGET_SAMPLE_RATE = 16_000;
 
+    // Stage of the pipeline — later stages lock out "Ready" status noise
+    // coming from the background model-loading thread.
+    private static final int STAGE_INIT        = 0;
+    private static final int STAGE_LOADING     = 1;
+    private static final int STAGE_DECODING    = 2;
+    private static final int STAGE_TRANSCRIBE  = 3;
+    private static final int STAGE_DONE        = 4;
+    private static final int STAGE_ERROR       = 5;
+    private volatile int stage = STAGE_INIT;
+
     private TextView    statusText;
+    private TextView    detailText;
     private ProgressBar progressBar;
     private View        progressArea;
     private ScrollView  resultArea;
     private TextView    resultText;
+    private TextView    savedPathText;
     private Button      copyButton;
     private Button      saveButton;
+    private Button      openButton;
     private Button      shareButton;
     private Button      mailButton;
+
+    private Uri    savedUri;       // content:// of auto-saved .txt
+    private String savedFileName;  // display name
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.transcribe_file_activity);
 
-        statusText   = findViewById(R.id.txt_status);
-        progressBar  = findViewById(R.id.progress_bar);
-        progressArea = findViewById(R.id.progress_area);
-        resultArea   = findViewById(R.id.result_area);
-        resultText   = findViewById(R.id.txt_result);
-        copyButton   = findViewById(R.id.btn_copy);
-        saveButton   = findViewById(R.id.btn_save);
-        shareButton  = findViewById(R.id.btn_share);
-        mailButton   = findViewById(R.id.btn_mail);
+        statusText    = findViewById(R.id.txt_status);
+        detailText    = findViewById(R.id.txt_detail);
+        progressBar   = findViewById(R.id.progress_bar);
+        progressArea  = findViewById(R.id.progress_area);
+        resultArea    = findViewById(R.id.result_area);
+        resultText    = findViewById(R.id.txt_result);
+        savedPathText = findViewById(R.id.txt_saved_path);
+        copyButton    = findViewById(R.id.btn_copy);
+        saveButton    = findViewById(R.id.btn_save);
+        openButton    = findViewById(R.id.btn_open);
+        shareButton   = findViewById(R.id.btn_share);
+        mailButton    = findViewById(R.id.btn_mail);
 
         findViewById(R.id.btn_close).setOnClickListener(v -> finish());
+
+        openButton.setOnClickListener(v -> openSavedFile());
 
         copyButton.setOnClickListener(v -> {
             String text = resultText.getText().toString();
@@ -126,18 +147,46 @@ public class TranscribeFileActivity extends Activity {
         String text = resultText.getText().toString();
         if (text.isEmpty()) return;
         new Thread(() -> {
-            String saved = TranscribeSaver.saveTranscript(this, text);
+            TranscribeSaver.SaveResult r = TranscribeSaver.saveTranscriptRich(this, text);
             runOnUiThread(() -> {
-                if (saved != null)
+                if (r.isSuccess()) {
+                    savedUri = r.shareUri;
+                    savedFileName = r.displayName;
+                    savedPathText.setText(
+                            getString(R.string.transcript_saved_at,
+                                    r.displayName, r.location));
+                    savedPathText.setVisibility(View.VISIBLE);
+                    openButton.setVisibility(View.VISIBLE);
                     Toast.makeText(this,
-                            getString(R.string.transcript_saved, saved),
+                            getString(R.string.transcript_saved, r.displayName),
                             Toast.LENGTH_LONG).show();
-                else
+                } else {
                     Toast.makeText(this,
-                            getString(R.string.transcript_save_error),
-                            Toast.LENGTH_SHORT).show();
+                            getString(R.string.transcript_save_error) + ": " + r.errorMessage,
+                            Toast.LENGTH_LONG).show();
+                }
             });
         }).start();
+    }
+
+    private void openSavedFile() {
+        if (savedUri == null) {
+            Toast.makeText(this, getString(R.string.transcript_no_saved),
+                    Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setDataAndType(savedUri, "text/plain");
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION
+                | Intent.FLAG_ACTIVITY_NEW_TASK);
+        try {
+            startActivity(Intent.createChooser(intent,
+                    getString(R.string.transcript_open_with)));
+        } catch (Exception e) {
+            Toast.makeText(this,
+                    getString(R.string.transcript_open_error) + ": " + e.getMessage(),
+                    Toast.LENGTH_LONG).show();
+        }
     }
 
     // ------------------------------------------------------------------
@@ -145,11 +194,26 @@ public class TranscribeFileActivity extends Activity {
     // ------------------------------------------------------------------
 
     public void onStatusUpdate(String status) {
-        runOnUiThread(() -> statusText.setText(status));
+        runOnUiThread(() -> {
+            // Filter "Ready" once we've moved past the loading stage —
+            // the engine load thread keeps pinging "Ready" and would
+            // otherwise overwrite more useful status like "Dekodiere…".
+            if (stage > STAGE_LOADING && "Ready".equals(status)) return;
+            // Don't overwrite terminal states
+            if (stage == STAGE_DONE || stage == STAGE_ERROR) return;
+            statusText.setText(status);
+            if (status != null && status.startsWith("Error")) {
+                stage = STAGE_ERROR;
+                progressBar.setVisibility(View.GONE);
+                detailText.setText(status);
+                detailText.setVisibility(View.VISIBLE);
+            }
+        });
     }
 
     public void onTextTranscribed(String text) {
         runOnUiThread(() -> {
+            stage = STAGE_DONE;
             progressArea.setVisibility(View.GONE);
             resultArea  .setVisibility(View.VISIBLE);
             copyButton  .setVisibility(View.VISIBLE);
@@ -161,7 +225,35 @@ public class TranscribeFileActivity extends Activity {
             // Auto-copy
             ClipboardManager cb = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
             cb.setPrimaryClip(ClipData.newPlainText("Transcription", text));
-            Toast.makeText(this, getString(R.string.transcript_copied), Toast.LENGTH_LONG).show();
+
+            // Auto-save transcript and show path + Öffnen button
+            new Thread(() -> {
+                TranscribeSaver.SaveResult r =
+                        TranscribeSaver.saveTranscriptRich(this, text);
+                runOnUiThread(() -> {
+                    if (r.isSuccess()) {
+                        savedUri = r.shareUri;
+                        savedFileName = r.displayName;
+                        savedPathText.setText(
+                                getString(R.string.transcript_saved_at,
+                                        r.displayName, r.location));
+                        savedPathText.setVisibility(View.VISIBLE);
+                        openButton.setVisibility(View.VISIBLE);
+                        Toast.makeText(this,
+                                getString(R.string.transcript_saved, r.displayName),
+                                Toast.LENGTH_LONG).show();
+                    } else {
+                        savedPathText.setText(
+                                getString(R.string.transcript_save_error)
+                                        + ": " + r.errorMessage);
+                        savedPathText.setVisibility(View.VISIBLE);
+                        Toast.makeText(this,
+                                getString(R.string.transcript_save_error) + ": "
+                                        + r.errorMessage,
+                                Toast.LENGTH_LONG).show();
+                    }
+                });
+            }).start();
         });
     }
 
@@ -181,22 +273,58 @@ public class TranscribeFileActivity extends Activity {
     private void startDecodeAndTranscribe() {
         Uri audioUri = getAudioUri();
         if (audioUri == null) {
+            stage = STAGE_ERROR;
             statusText.setText(getString(R.string.error_no_audio));
+            progressBar.setVisibility(View.GONE);
             return;
         }
+        stage = STAGE_LOADING;
+        statusText.setText(getString(R.string.status_loading_model));
+        detailText.setText(getString(R.string.status_loading_model_detail));
+        detailText.setVisibility(View.VISIBLE);
+
         initNative(this);
         new Thread(() -> {
             try {
+                stage = STAGE_DECODING;
+                runOnUiThread(() -> {
+                    statusText.setText(getString(R.string.status_decoding));
+                    detailText.setText(getString(R.string.status_decoding_detail));
+                });
+                long t0 = System.currentTimeMillis();
                 float[] samples = decodeAudioToSamples(audioUri);
-                if (samples == null) {
-                    runOnUiThread(() -> statusText.setText("Error: Could not decode audio file"));
+                long decodeMs = System.currentTimeMillis() - t0;
+                if (samples == null || samples.length == 0) {
+                    stage = STAGE_ERROR;
+                    runOnUiThread(() -> {
+                        statusText.setText(getString(R.string.error_decode_empty));
+                        detailText.setText(getString(R.string.error_decode_empty_detail));
+                        progressBar.setVisibility(View.GONE);
+                    });
                     return;
                 }
-                runOnUiThread(() -> statusText.setText("Transkribiere…"));
+                final int sampleCount = samples.length;
+                final double durationSec = sampleCount / (double) TARGET_SAMPLE_RATE;
+                Log.i(TAG, "Decoded " + sampleCount + " samples ("
+                        + String.format("%.1f", durationSec) + "s) in " + decodeMs + "ms");
+                stage = STAGE_TRANSCRIBE;
+                runOnUiThread(() -> {
+                    statusText.setText(getString(R.string.status_transcribing));
+                    detailText.setText(getString(R.string.status_transcribing_detail,
+                            String.format("%.1f", durationSec)));
+                });
                 transcribeAudio(samples, samples.length);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 Log.e(TAG, "Error decoding audio", e);
-                runOnUiThread(() -> statusText.setText("Error: " + e.getMessage()));
+                stage = STAGE_ERROR;
+                final String msg = e.getMessage() != null
+                        ? e.getMessage()
+                        : e.getClass().getSimpleName();
+                runOnUiThread(() -> {
+                    statusText.setText(getString(R.string.error_decode) + ": " + msg);
+                    detailText.setText(e.toString());
+                    progressBar.setVisibility(View.GONE);
+                });
             }
         }).start();
     }
