@@ -23,7 +23,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
-import java.util.Arrays;
 
 public class TranscribeFileActivity extends Activity {
 
@@ -291,9 +290,11 @@ public class TranscribeFileActivity extends Activity {
                     detailText.setText(getString(R.string.status_decoding_detail));
                 });
                 long t0 = System.currentTimeMillis();
-                float[] samples = decodeAudioToSamples(audioUri);
+                // Decode audio chunk-by-chunk directly into native memory.
+                // Returns estimated duration in seconds, or -1 if no audio track found.
+                double durationSec = decodeAndFeedAudio(audioUri);
                 long decodeMs = System.currentTimeMillis() - t0;
-                if (samples == null || samples.length == 0) {
+                if (durationSec < 0) {
                     stage = STAGE_ERROR;
                     runOnUiThread(() -> {
                         statusText.setText(getString(R.string.error_decode_empty));
@@ -302,17 +303,14 @@ public class TranscribeFileActivity extends Activity {
                     });
                     return;
                 }
-                final int sampleCount = samples.length;
-                final double durationSec = sampleCount / (double) TARGET_SAMPLE_RATE;
-                Log.i(TAG, "Decoded " + sampleCount + " samples ("
-                        + String.format("%.1f", durationSec) + "s) in " + decodeMs + "ms");
+                Log.i(TAG, "Decoded " + String.format("%.1f", durationSec) + "s in " + decodeMs + "ms");
                 stage = STAGE_TRANSCRIBE;
                 runOnUiThread(() -> {
                     statusText.setText(getString(R.string.status_transcribing));
                     detailText.setText(getString(R.string.status_transcribing_detail,
                             String.format("%.1f", durationSec)));
                 });
-                transcribeAudio(samples, samples.length);
+                transcribeAccumulated();
             } catch (Throwable e) {
                 Log.e(TAG, "Error decoding audio", e);
                 stage = STAGE_ERROR;
@@ -328,7 +326,14 @@ public class TranscribeFileActivity extends Activity {
         }).start();
     }
 
-    private float[] decodeAudioToSamples(Uri uri) throws IOException {
+    /**
+     * Decodes the audio at {@code uri}, resamples to {@link #TARGET_SAMPLE_RATE} Hz,
+     * and streams the mono float samples to native memory in small chunks via
+     * {@link #appendAudioSamples}.  No large Java-heap float[] is ever allocated.
+     *
+     * @return estimated duration in seconds, or -1 if no audio track was found.
+     */
+    private double decodeAndFeedAudio(Uri uri) throws IOException {
         MediaExtractor extractor = new MediaExtractor();
         extractor.setDataSource(this, uri, null);
 
@@ -342,28 +347,36 @@ public class TranscribeFileActivity extends Activity {
                 break;
             }
         }
-        if (audioTrackIndex < 0) return null;
+        if (audioTrackIndex < 0) {
+            extractor.release();
+            return -1;
+        }
 
         extractor.selectTrack(audioTrackIndex);
         int sampleRate   = inputFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
         int channelCount = inputFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
 
-        // Pre-allocate a single buffer based on duration to avoid double-buffering.
-        // The old approach (List<float[]> + mergeChunks) used 2x the memory peak.
-        int estimatedSamples = TARGET_SAMPLE_RATE * 120; // fallback: 2 minutes
+        double durationSec = -1;
         if (inputFormat.containsKey(MediaFormat.KEY_DURATION)) {
-            long durationUs = inputFormat.getLong(MediaFormat.KEY_DURATION);
-            double srcSamples = (durationUs / 1_000_000.0) * sampleRate;
-            estimatedSamples = (int) (srcSamples * TARGET_SAMPLE_RATE / (double) sampleRate * 1.05 + 0.5);
-            if (estimatedSamples < TARGET_SAMPLE_RATE * 5) estimatedSamples = TARGET_SAMPLE_RATE * 5;
+            durationSec = inputFormat.getLong(MediaFormat.KEY_DURATION) / 1_000_000.0;
         }
-        float[] sampleBuf = new float[estimatedSamples];
-        int writtenSamples = 0;
 
         MediaCodec codec = MediaCodec.createDecoderByType(
                 inputFormat.getString(MediaFormat.KEY_MIME));
         codec.configure(inputFormat, null, null, 0);
         codec.start();
+
+        // Resampling state — linear interpolation, handles any ratio.
+        // ratio > 1: downsampling, ratio < 1: upsampling.
+        final double ratio = (double) sampleRate / TARGET_SAMPLE_RATE;
+        double nextOutSrcPos = 0.0; // source-sample position of the next output sample
+        float prevMono = 0.0f;
+        long monoIdx = 0; // 0-based index of the current source mono sample
+
+        // Small output chunk sent to native to avoid any large Java array.
+        final int CHUNK_SIZE = 8192;
+        float[] chunk = new float[CHUNK_SIZE];
+        int chunkLen = 0;
 
         int[]     outChannels = {channelCount};
         boolean[] isPcmFloat  = {false};
@@ -390,6 +403,7 @@ public class TranscribeFileActivity extends Activity {
                     }
                 }
             }
+
             int outIdx = codec.dequeueOutputBuffer(bufferInfo, timeoutUs);
             if (outIdx == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
                 MediaFormat outFmt = codec.getOutputFormat();
@@ -400,80 +414,94 @@ public class TranscribeFileActivity extends Activity {
             } else if (outIdx >= 0) {
                 if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0)
                     outputDone = true;
+
                 ByteBuffer outBuf = codec.getOutputBuffer(outIdx);
                 if (outBuf != null && bufferInfo.size > 0) {
                     outBuf.position(bufferInfo.offset);
                     outBuf.limit(bufferInfo.offset + bufferInfo.size);
                     outBuf.order(ByteOrder.LITTLE_ENDIAN);
                     int ch = outChannels[0];
-                    int monoCount;
+
                     if (isPcmFloat[0]) {
                         FloatBuffer fb = outBuf.asFloatBuffer();
-                        monoCount = fb.remaining() / ch;
-                        if (writtenSamples + monoCount > sampleBuf.length)
-                            sampleBuf = Arrays.copyOf(sampleBuf,
-                                    Math.max(sampleBuf.length * 2, writtenSamples + monoCount));
-                        for (int i = 0; i < monoCount; i++) {
+                        int frames = fb.remaining() / ch;
+                        for (int i = 0; i < frames; i++) {
+                            float mono;
                             if (ch == 1) {
-                                sampleBuf[writtenSamples++] = fb.get();
+                                mono = fb.get();
                             } else {
                                 float sum = 0;
                                 for (int c = 0; c < ch; c++) sum += fb.get();
-                                sampleBuf[writtenSamples++] = sum / ch;
+                                mono = sum / ch;
                             }
+                            // Linear-interpolation resample, one source sample at a time.
+                            while (nextOutSrcPos <= monoIdx) {
+                                long floorPos = (long) nextOutSrcPos;
+                                double frac   = nextOutSrcPos - floorPos;
+                                float  xFloor = (floorPos == monoIdx) ? mono : prevMono;
+                                chunk[chunkLen++] = (float) (xFloor * (1.0 - frac) + mono * frac);
+                                nextOutSrcPos += ratio;
+                                if (chunkLen == CHUNK_SIZE) {
+                                    appendAudioSamples(chunk, CHUNK_SIZE);
+                                    chunkLen = 0;
+                                }
+                            }
+                            prevMono = mono;
+                            monoIdx++;
                         }
                     } else {
                         ShortBuffer sb = outBuf.asShortBuffer();
-                        monoCount = sb.remaining() / ch;
-                        if (writtenSamples + monoCount > sampleBuf.length)
-                            sampleBuf = Arrays.copyOf(sampleBuf,
-                                    Math.max(sampleBuf.length * 2, writtenSamples + monoCount));
-                        for (int i = 0; i < monoCount; i++) {
+                        int frames = sb.remaining() / ch;
+                        for (int i = 0; i < frames; i++) {
+                            float mono;
                             if (ch == 1) {
-                                sampleBuf[writtenSamples++] = sb.get() / 32768.0f;
+                                mono = sb.get() / 32768.0f;
                             } else {
                                 float sum = 0;
                                 for (int c = 0; c < ch; c++) sum += sb.get() / 32768.0f;
-                                sampleBuf[writtenSamples++] = sum / ch;
+                                mono = sum / ch;
                             }
+                            while (nextOutSrcPos <= monoIdx) {
+                                long floorPos = (long) nextOutSrcPos;
+                                double frac   = nextOutSrcPos - floorPos;
+                                float  xFloor = (floorPos == monoIdx) ? mono : prevMono;
+                                chunk[chunkLen++] = (float) (xFloor * (1.0 - frac) + mono * frac);
+                                nextOutSrcPos += ratio;
+                                if (chunkLen == CHUNK_SIZE) {
+                                    appendAudioSamples(chunk, CHUNK_SIZE);
+                                    chunkLen = 0;
+                                }
+                            }
+                            prevMono = mono;
+                            monoIdx++;
                         }
                     }
                 }
                 codec.releaseOutputBuffer(outIdx, false);
             }
         }
-        codec.stop(); codec.release();
+
+        codec.stop();
+        codec.release();
         extractor.release();
 
-        // Trim to actual size only if significantly over-allocated (> 5% waste)
-        float[] mono;
-        if (writtenSamples < sampleBuf.length * 0.95) {
-            mono = Arrays.copyOf(sampleBuf, writtenSamples);
-            sampleBuf = null; // help GC
-        } else {
-            mono = sampleBuf;
+        // Flush the last partial chunk.
+        if (chunkLen > 0) {
+            appendAudioSamples(chunk, chunkLen);
         }
 
-        if (sampleRate != TARGET_SAMPLE_RATE)
-            mono = resample(mono, sampleRate, TARGET_SAMPLE_RATE);
-        return mono;
-    }
-
-    private float[] resample(float[] input, int from, int to) {
-        double ratio = (double) from / to;
-        float[] output = new float[(int) (input.length / ratio)];
-        for (int i = 0; i < output.length; i++) {
-            double src  = i * ratio;
-            int    idx  = (int) src;
-            double frac = src - idx;
-            output[i] = (idx + 1 < input.length)
-                    ? (float) (input[idx] * (1 - frac) + input[idx + 1] * frac)
-                    : (idx < input.length ? input[idx] : 0);
+        // If duration was unknown up front, estimate from samples produced.
+        if (durationSec < 0) {
+            long totalOutSamples = (long) (monoIdx / ratio);
+            durationSec = totalOutSamples / (double) TARGET_SAMPLE_RATE;
         }
-        return output;
+        return durationSec;
     }
 
     private native void initNative(TranscribeFileActivity activity);
     private native void cleanupNative();
-    private native void transcribeAudio(float[] samples, int length);
+    /** Appends {@code len} samples from {@code chunk} into native accumulation buffer. */
+    private native void appendAudioSamples(float[] chunk, int len);
+    /** Triggers transcription of everything accumulated via {@link #appendAudioSamples}. */
+    private native void transcribeAccumulated();
 }

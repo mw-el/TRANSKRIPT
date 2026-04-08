@@ -12,6 +12,9 @@ use crate::engine;
 struct TranscribeFileState {
     jvm: Arc<jni::JavaVM>,
     target_ref: jni::objects::GlobalRef,
+    /// Accumulates decoded audio samples chunk-by-chunk from Java.
+    /// Samples are streamed here to avoid a huge Java-heap float[] allocation.
+    pending_samples: Vec<f32>,
 }
 
 static STATE: Lazy<Mutex<Option<TranscribeFileState>>> = Lazy::new(|| Mutex::new(None));
@@ -57,6 +60,7 @@ pub unsafe extern "system" fn Java_dev_notune_transcribe_TranscribeFileActivity_
     let state = TranscribeFileState {
         jvm: vm_arc.clone(),
         target_ref: target_ref.clone(),
+        pending_samples: Vec::new(),
     };
     *STATE.lock().unwrap() = Some(state);
 
@@ -77,22 +81,45 @@ pub unsafe extern "system" fn Java_dev_notune_transcribe_TranscribeFileActivity_
     *STATE.lock().unwrap() = None;
 }
 
+/// Called repeatedly from Java during decoding to stream decoded audio into native memory.
+/// This avoids allocating a large Java-heap float[] for the entire audio file.
 #[no_mangle]
-pub unsafe extern "system" fn Java_dev_notune_transcribe_TranscribeFileActivity_transcribeAudio(
+pub unsafe extern "system" fn Java_dev_notune_transcribe_TranscribeFileActivity_appendAudioSamples(
     env: JNIEnv,
     _class: JClass,
-    samples_array: JFloatArray,
-    length: jint,
+    chunk: JFloatArray,
+    len: jint,
 ) {
-    let guard = STATE.lock().unwrap();
-    let state = match guard.as_ref() {
+    let len = len as usize;
+    if len == 0 {
+        return;
+    }
+    let mut guard = STATE.lock().unwrap();
+    let state = match guard.as_mut() {
         Some(s) => s,
         None => return,
     };
 
-    let len = length as usize;
-    if len == 0 {
-        log::warn!("transcribeAudio called with empty buffer");
+    let prev_len = state.pending_samples.len();
+    state.pending_samples.resize(prev_len + len, 0.0f32);
+    let _ = env.get_float_array_region(&chunk, 0, &mut state.pending_samples[prev_len..]);
+}
+
+/// Called from Java after all audio chunks have been appended via appendAudioSamples.
+/// Drains the accumulated samples and runs transcription on a background thread.
+#[no_mangle]
+pub unsafe extern "system" fn Java_dev_notune_transcribe_TranscribeFileActivity_transcribeAccumulated(
+    _env: JNIEnv,
+    _class: JClass,
+) {
+    let mut guard = STATE.lock().unwrap();
+    let state = match guard.as_mut() {
+        Some(s) => s,
+        None => return,
+    };
+
+    if state.pending_samples.is_empty() {
+        log::warn!("transcribeAccumulated called with empty buffer");
         let jvm = state.jvm.clone();
         let target_ref = state.target_ref.clone();
         drop(guard);
@@ -106,19 +133,10 @@ pub unsafe extern "system" fn Java_dev_notune_transcribe_TranscribeFileActivity_
         return;
     }
 
-    let mut buffer = vec![0.0f32; len];
-    if env
-        .get_float_array_region(&samples_array, 0, &mut buffer)
-        .is_err()
-    {
-        log::error!("Failed to read float array from Java");
-        return;
-    }
-
+    // Drain the pending samples — the transcription thread owns them now.
+    let buffer = std::mem::take(&mut state.pending_samples);
     let jvm = state.jvm.clone();
     let target_ref = state.target_ref.clone();
-
-    // Drop the lock before spawning the thread
     drop(guard);
 
     std::thread::spawn(move || {
