@@ -14,7 +14,7 @@
     <style name="AppDialogTheme" parent="android:Theme.Material.Light.Dialog.NoActionBar">
         <item name="android:colorPrimary">@color/cl_accent</item>
         <item name="android:colorAccent">@color/cl_green</item>
-        <item name="android:windowBackground">@color/cl_bg</item>
+        <item name="android:windowBackground">@drawable/bg_dialog</item>
         <item name="android:textColorPrimary">@color/cl_ink</item>
         <item name="android:textColorSecondary">@color/cl_ink_soft</item>
         <item name="android:windowMinWidthMajor">92%</item>
