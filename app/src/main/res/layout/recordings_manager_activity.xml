@@ -51,7 +51,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="@dimen/space_4"/>
+            android:paddingStart="@dimen/space_5"
+            android:paddingEnd="@dimen/space_5"
+            android:paddingTop="@dimen/space_4"
+            android:paddingBottom="@dimen/space_4"/>
 
     </ScrollView>
 </LinearLayout>

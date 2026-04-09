@@ -2,7 +2,10 @@ package dev.notune.transcribe;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.media.MediaPlayer;
@@ -328,24 +331,85 @@ public class RecordingsManagerActivity extends Activity {
     }
 
     // ------------------------------------------------------------------
-    // Edit text
+    // Edit text (with copy / save / open / share action buttons)
     // ------------------------------------------------------------------
 
     private void showEditDialog(RecordingEntry entry) {
         String content = readText(entry);
 
+        // Root container
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(dp(16), dp(8), dp(16), dp(16));
+
+        // Editable text field
         EditText editText = new EditText(this);
         editText.setText(content);
         editText.setMinLines(8);
         editText.setBackground(getDrawable(R.drawable.bg_edit_text));
         editText.setPadding(dp(12), dp(12), dp(12), dp(12));
         editText.setTextColor(getColor(R.color.cl_ink));
+        LinearLayout.LayoutParams etParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        etParams.setMargins(0, 0, 0, dp(12));
+        editText.setLayoutParams(etParams);
+        root.addView(editText);
 
-        new AlertDialog.Builder(this)
+        // Action button row: Kopieren | Speichern | Oeffnen | Teilen
+        LinearLayout btnRow = new LinearLayout(this);
+        btnRow.setOrientation(LinearLayout.HORIZONTAL);
+        btnRow.setGravity(Gravity.CENTER_VERTICAL);
+
+        // -- Kopieren --
+        Button btnCopy = makeActionButton(getString(R.string.transcript_copy));
+        btnCopy.setOnClickListener(v -> {
+            ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            cm.setPrimaryClip(ClipData.newPlainText("transcript", editText.getText().toString()));
+            toast(getString(R.string.toast_copied));
+        });
+        btnRow.addView(btnCopy);
+
+        // -- Speichern --
+        Button btnSave = makeActionButton(getString(R.string.transcript_save));
+        btnSave.setBackgroundTintList(getColorStateList(R.color.cl_green));
+        btnSave.setOnClickListener(v -> saveText(entry, editText.getText().toString()));
+        btnRow.addView(btnSave);
+
+        // -- Öffnen --
+        Button btnOpen = makeActionButton(getString(R.string.transcript_open));
+        btnOpen.setBackgroundTintList(getColorStateList(R.color.cl_accent2));
+        btnOpen.setOnClickListener(v -> {
+            Uri fileUri = resolveUri(entry);
+            if (fileUri == null) { toast("Datei nicht gefunden"); return; }
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(fileUri, "text/plain");
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            try { startActivity(intent); }
+            catch (Exception e) { toast("Keine App zum Öffnen gefunden"); }
+        });
+        btnRow.addView(btnOpen);
+
+        // -- Teilen --
+        Button btnShare = makeActionButton(getString(R.string.transcript_share));
+        btnShare.setBackground(getDrawable(R.drawable.bg_button_secondary));
+        btnShare.setTextColor(getColor(R.color.cl_ink));
+        btnShare.setOnClickListener(v -> {
+            Uri fileUri = resolveUri(entry);
+            if (fileUri == null) { toast("Datei nicht gefunden"); return; }
+            Intent intent = new Intent(Intent.ACTION_SEND);
+            intent.setType("text/plain");
+            intent.putExtra(Intent.EXTRA_STREAM, fileUri);
+            intent.putExtra(Intent.EXTRA_TEXT, editText.getText().toString());
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            startActivity(Intent.createChooser(intent, getString(R.string.transcript_share)));
+        });
+        btnRow.addView(btnShare);
+
+        root.addView(btnRow);
+
+        new AlertDialog.Builder(this, R.style.AppDialogTheme)
                 .setTitle(entry.baseName + ".txt")
-                .setView(editText)
-                .setPositiveButton(getString(R.string.recordings_save), (d, w) ->
-                        saveText(entry, editText.getText().toString()))
+                .setView(root)
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();
     }
@@ -403,9 +467,13 @@ public class RecordingsManagerActivity extends Activity {
         input.setTextColor(getColor(R.color.cl_ink));
         input.setHint(getString(R.string.recordings_rename_hint));
 
-        new AlertDialog.Builder(this)
+        LinearLayout wrapper = new LinearLayout(this);
+        wrapper.setPadding(dp(16), dp(8), dp(16), dp(0));
+        wrapper.addView(input);
+
+        new AlertDialog.Builder(this, R.style.AppDialogTheme)
                 .setTitle(getString(R.string.recordings_rename))
-                .setView(input)
+                .setView(wrapper)
                 .setPositiveButton(getString(R.string.recordings_save), (d, w) -> {
                     String newBase = input.getText().toString().trim();
                     if (!newBase.isEmpty() && !newBase.equals(group.baseName))
@@ -447,7 +515,7 @@ public class RecordingsManagerActivity extends Activity {
     // ------------------------------------------------------------------
 
     private void showDeleteDialog(RecordingEntry entry, RecordingGroup group) {
-        new AlertDialog.Builder(this)
+        new AlertDialog.Builder(this, R.style.AppDialogTheme)
                 .setTitle(getString(R.string.recordings_confirm_delete))
                 .setMessage(entry.baseName + "." + entry.ext)
                 .setPositiveButton(getString(R.string.recordings_delete), (d, w) -> doDelete(entry))
@@ -529,6 +597,25 @@ public class RecordingsManagerActivity extends Activity {
         p.setMargins(0, 0, dp(6), 0);
         btn.setLayoutParams(p);
         btn.setPadding(dp(10), dp(4), dp(10), dp(4));
+        btn.setMinHeight(0);
+        btn.setMinimumHeight(0);
+        return btn;
+    }
+
+    /** Full-width action button for the edit dialog (matches TranscribeFileActivity style). */
+    private Button makeActionButton(String text) {
+        Button btn = new Button(this);
+        btn.setText(text);
+        btn.setTextSize(12);
+        btn.setTextColor(getColor(android.R.color.white));
+        btn.setBackground(getDrawable(R.drawable.bg_button_primary));
+        btn.setAllCaps(false);
+        btn.setStateListAnimator(null);
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        p.setMargins(0, 0, dp(3), 0);
+        btn.setLayoutParams(p);
+        btn.setPadding(dp(4), dp(8), dp(4), dp(8));
         btn.setMinHeight(0);
         btn.setMinimumHeight(0);
         return btn;

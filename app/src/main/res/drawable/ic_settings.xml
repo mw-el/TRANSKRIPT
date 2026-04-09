@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Material Symbol: settings (Google Fonts, 24dp, wght400) -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
     android:viewportWidth="960"
     android:viewportHeight="960">
-    <!-- Material Symbol: settings. Original SVG uses viewBox="0 -960 960 960".
-         The group scaleY="-1" + translateY="-960" mirrors the coordinate system. -->
     <group
         android:scaleY="-1"
         android:translateY="-960">
