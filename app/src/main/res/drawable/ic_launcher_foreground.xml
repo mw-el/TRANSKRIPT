@@ -4,8 +4,6 @@
     android:height="108dp"
     android:viewportWidth="960"
     android:viewportHeight="960">
-    <!-- Speech-to-text Material Symbol. Coordinate system: scaleY=-1 / translateY=-960
-         mirrors the original viewBox="0 -960 960 960". -->
     <group
         android:scaleY="-1"
         android:translateY="-960">
