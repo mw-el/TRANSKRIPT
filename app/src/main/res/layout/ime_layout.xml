@@ -22,7 +22,7 @@
             android:textColor="#333333"
             android:textSize="14sp"
             android:paddingStart="8dp"/>
-            
+
         <ProgressBar
             android:id="@+id/ime_progress"
             style="?android:attr/progressBarStyleSmall"
@@ -37,15 +37,15 @@
         android:layout_height="200dp"
         android:background="@drawable/bg_card"
         android:backgroundTint="#FFFFFF">
-        
+
         <ImageView
             android:id="@+id/ime_mic_icon"
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:src="@android:drawable/ic_btn_speak_now"
+            android:src="@drawable/ic_mic_ime"
             android:layout_gravity="center"
-            android:tint="@color/colorPrimary"/>
-            
+            android:tint="@color/cl_accent"/>
+
         <TextView
             android:id="@+id/ime_hint"
             android:layout_width="wrap_content"
