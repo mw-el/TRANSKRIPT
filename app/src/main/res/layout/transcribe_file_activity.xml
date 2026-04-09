@@ -4,8 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/cl_bg"
-    android:fitsSystemWindows="true"
-    android:padding="@dimen/space_5">
+    android:fitsSystemWindows="true">
 
     <!-- Header -->
     <LinearLayout
@@ -13,6 +12,8 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
+        android:paddingStart="@dimen/space_5"
+        android:paddingEnd="@dimen/space_5"
         android:layout_marginTop="@dimen/space_4"
         android:layout_marginBottom="@dimen/space_4">
 
@@ -39,7 +40,9 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:paddingStart="@dimen/space_5"
+        android:paddingEnd="@dimen/space_5">
 
         <!-- Progress area -->
         <LinearLayout
@@ -156,53 +159,39 @@
             android:layout_marginTop="@dimen/space_3"
             android:layout_marginBottom="@dimen/space_3">
 
-            <Button
+            <ImageButton
                 android:id="@+id/btn_copy"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="3dp"
-                android:text="@string/transcript_copy"
-                android:visibility="gone"
-                style="@style/ButtonStyle"
-                android:textSize="12sp"/>
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginEnd="@dimen/space_3"
+                android:src="@drawable/ic_copy"
+                android:background="@drawable/bg_button_primary"
+                android:padding="14dp"
+                android:contentDescription="@string/transcript_copy"
+                android:visibility="gone"/>
 
-            <Button
-                android:id="@+id/btn_save"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="3dp"
-                android:layout_marginEnd="3dp"
-                android:text="@string/transcript_save"
-                android:visibility="gone"
-                style="@style/ButtonStyle"
-                android:backgroundTint="@color/cl_green"
-                android:textSize="12sp"/>
-
-            <Button
+            <ImageButton
                 android:id="@+id/btn_open"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="3dp"
-                android:layout_marginEnd="3dp"
-                android:text="@string/transcript_open"
-                android:visibility="gone"
-                style="@style/ButtonStyle"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginEnd="@dimen/space_3"
+                android:src="@drawable/ic_open"
+                android:background="@drawable/bg_button_primary"
                 android:backgroundTint="@color/cl_accent2"
-                android:textSize="12sp"/>
+                android:padding="14dp"
+                android:contentDescription="@string/transcript_open"
+                android:visibility="gone"/>
 
-            <Button
+            <ImageButton
                 android:id="@+id/btn_share"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="3dp"
-                android:text="@string/transcript_share"
-                android:visibility="gone"
-                style="@style/SecondaryButtonStyle"
-                android:textSize="12sp"/>
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:src="@drawable/ic_share"
+                android:background="@drawable/bg_button_primary"
+                android:backgroundTint="@color/cl_green"
+                android:padding="14dp"
+                android:contentDescription="@string/transcript_share"
+                android:visibility="gone"/>
 
         </LinearLayout>
 

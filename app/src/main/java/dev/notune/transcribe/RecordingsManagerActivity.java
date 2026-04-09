@@ -16,6 +16,7 @@ import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -342,6 +343,33 @@ public class RecordingsManagerActivity extends Activity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(dp(16), dp(8), dp(16), dp(16));
 
+        // Header: filename + X close button
+        LinearLayout header = new LinearLayout(this);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams headerParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        headerParams.setMargins(0, 0, 0, dp(12));
+        header.setLayoutParams(headerParams);
+
+        TextView titleView = new TextView(this);
+        titleView.setText(entry.baseName + ".txt");
+        titleView.setTextSize(16);
+        titleView.setTypeface(null, Typeface.BOLD);
+        titleView.setTextColor(getColor(R.color.cl_ink));
+        titleView.setLayoutParams(new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        header.addView(titleView);
+
+        ImageButton btnX = new ImageButton(this);
+        btnX.setImageDrawable(getDrawable(android.R.drawable.ic_menu_close_clear_cancel));
+        btnX.setColorFilter(getColor(R.color.cl_ink_soft));
+        btnX.setBackground(null);
+        btnX.setLayoutParams(new LinearLayout.LayoutParams(dp(40), dp(40)));
+        header.addView(btnX);
+
+        root.addView(header);
+
         // Editable text field
         EditText editText = new EditText(this);
         editText.setText(content);
@@ -355,44 +383,25 @@ public class RecordingsManagerActivity extends Activity {
         editText.setLayoutParams(etParams);
         root.addView(editText);
 
-        // Action button row: Kopieren | Speichern | Oeffnen | Teilen
+        // Icon button row: copy | save | share
         LinearLayout btnRow = new LinearLayout(this);
         btnRow.setOrientation(LinearLayout.HORIZONTAL);
-        btnRow.setGravity(Gravity.CENTER_VERTICAL);
+        btnRow.setGravity(Gravity.CENTER);
+        root.addView(btnRow);
 
-        // -- Kopieren --
-        Button btnCopy = makeActionButton(getString(R.string.transcript_copy));
+        ImageButton btnCopy = makeIconButton(R.drawable.ic_copy, R.color.cl_accent, dp(12));
         btnCopy.setOnClickListener(v -> {
             ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             cm.setPrimaryClip(ClipData.newPlainText("transcript", editText.getText().toString()));
-            toast(getString(R.string.toast_copied));
+            toast(getString(R.string.transcript_copied));
         });
         btnRow.addView(btnCopy);
 
-        // -- Speichern --
-        Button btnSave = makeActionButton(getString(R.string.transcript_save));
-        btnSave.setBackgroundTintList(getColorStateList(R.color.cl_green));
+        ImageButton btnSave = makeIconButton(R.drawable.ic_save, R.color.cl_green, dp(12));
         btnSave.setOnClickListener(v -> saveText(entry, editText.getText().toString()));
         btnRow.addView(btnSave);
 
-        // -- Öffnen --
-        Button btnOpen = makeActionButton(getString(R.string.transcript_open));
-        btnOpen.setBackgroundTintList(getColorStateList(R.color.cl_accent2));
-        btnOpen.setOnClickListener(v -> {
-            Uri fileUri = resolveUri(entry);
-            if (fileUri == null) { toast("Datei nicht gefunden"); return; }
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(fileUri, "text/plain");
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            try { startActivity(intent); }
-            catch (Exception e) { toast("Keine App zum Öffnen gefunden"); }
-        });
-        btnRow.addView(btnOpen);
-
-        // -- Teilen --
-        Button btnShare = makeActionButton(getString(R.string.transcript_share));
-        btnShare.setBackground(getDrawable(R.drawable.bg_button_secondary));
-        btnShare.setTextColor(getColor(R.color.cl_ink));
+        ImageButton btnShare = makeIconButton(R.drawable.ic_share, R.color.cl_green, 0);
         btnShare.setOnClickListener(v -> {
             Uri fileUri = resolveUri(entry);
             if (fileUri == null) { toast("Datei nicht gefunden"); return; }
@@ -405,13 +414,12 @@ public class RecordingsManagerActivity extends Activity {
         });
         btnRow.addView(btnShare);
 
-        root.addView(btnRow);
-
-        new AlertDialog.Builder(this, R.style.AppDialogTheme)
-                .setTitle(entry.baseName + ".txt")
+        AlertDialog dialog = new AlertDialog.Builder(this, R.style.AppDialogTheme)
                 .setView(root)
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
+                .create();
+
+        btnX.setOnClickListener(v -> dialog.dismiss());
+        dialog.show();
     }
 
     private String readText(RecordingEntry entry) {
@@ -602,22 +610,17 @@ public class RecordingsManagerActivity extends Activity {
         return btn;
     }
 
-    /** Full-width action button for the edit dialog (matches TranscribeFileActivity style). */
-    private Button makeActionButton(String text) {
-        Button btn = new Button(this);
-        btn.setText(text);
-        btn.setTextSize(12);
-        btn.setTextColor(getColor(android.R.color.white));
+    /** 56dp icon-only button for the edit dialog (matches TranscribeFileActivity style). */
+    private ImageButton makeIconButton(int iconRes, int colorRes, int marginEnd) {
+        ImageButton btn = new ImageButton(this);
+        btn.setImageDrawable(getDrawable(iconRes));
         btn.setBackground(getDrawable(R.drawable.bg_button_primary));
-        btn.setAllCaps(false);
+        btn.setBackgroundTintList(getColorStateList(colorRes));
+        btn.setPadding(dp(14), dp(14), dp(14), dp(14));
         btn.setStateListAnimator(null);
-        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
-                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
-        p.setMargins(0, 0, dp(3), 0);
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(dp(56), dp(56));
+        p.setMargins(0, 0, marginEnd, 0);
         btn.setLayoutParams(p);
-        btn.setPadding(dp(4), dp(8), dp(4), dp(8));
-        btn.setMinHeight(0);
-        btn.setMinimumHeight(0);
         return btn;
     }
 

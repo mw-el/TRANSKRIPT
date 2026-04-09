@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
@@ -44,9 +45,23 @@ public class MainActivity extends Activity {
 
         grantButton.setOnClickListener(v -> checkAndRequestPermissions());
 
-        ImageButton settingsButton = findViewById(R.id.btn_settings);
-        settingsButton.setOnClickListener(v ->
-                startActivity(new Intent(this, SettingsActivity.class)));
+        ImageButton menuButton = findViewById(R.id.btn_menu);
+        menuButton.setOnClickListener(v -> {
+            PopupMenu popup = new PopupMenu(this, menuButton);
+            popup.getMenuInflater().inflate(R.menu.main_popup, popup.getMenu());
+            popup.setOnMenuItemClickListener(item -> {
+                int id = item.getItemId();
+                if (id == R.id.action_settings) {
+                    startActivity(new Intent(this, SettingsActivity.class));
+                    return true;
+                } else if (id == R.id.action_close) {
+                    finish();
+                    return true;
+                }
+                return false;
+            });
+            popup.show();
+        });
 
         Button imeSettingsButton = findViewById(R.id.btn_ime_settings);
         imeSettingsButton.setOnClickListener(v ->

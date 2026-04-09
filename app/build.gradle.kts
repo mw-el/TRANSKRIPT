@@ -8,6 +8,7 @@ plugins {
 android {
     namespace = "dev.notune.transcribe"
     compileSdk = 35
+    ndkVersion = "28.0.12433566"
 
     defaultConfig {
         applicationId = "dev.notune.transcribe"
@@ -127,14 +128,20 @@ val cargoNdkBuild by tasks.registering(Exec::class) {
 
     environment("ANDROID_NDK_HOME", ndkDir)
 
+    // Ensure ~/.cargo/bin is on the PATH for the Gradle daemon
+    val cargoBin = "${System.getProperty("user.home")}/.cargo/bin"
+    val currentPath = System.getenv("PATH") ?: ""
+    environment("PATH", if (currentPath.contains(cargoBin)) currentPath else "$cargoBin:$currentPath")
+
     val extractDir = layout.buildDirectory.dir("ort-extracted").get().asFile
     environment("ORT_LIB_LOCATION", File(extractDir, "jni/arm64-v8a").absolutePath)
     environment("ORT_INCLUDE_DIR", File(extractDir, "headers").absolutePath)
 
     val jniLibsDir = project.file("src/main/jniLibs")
 
+    val cargoExe = "$cargoBin/cargo"
     commandLine(
-        "cargo", "ndk",
+        cargoExe, "ndk",
         "-t", "arm64-v8a",
         "-o", jniLibsDir.absolutePath,
         "build", "--release"
@@ -143,7 +150,11 @@ val cargoNdkBuild by tasks.registering(Exec::class) {
     // Copy libc++_shared.so from NDK (needed because Rust links against it dynamically)
     doLast {
         val ndkPath = environment["ANDROID_NDK_HOME"] as String
-        val libcpp = file("$ndkPath/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so")
+        val prebuiltHost = when {
+            System.getProperty("os.name").lowercase().contains("mac") -> "darwin-x86_64"
+            else -> "linux-x86_64"
+        }
+        val libcpp = file("$ndkPath/toolchains/llvm/prebuilt/$prebuiltHost/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so")
         if (libcpp.exists()) {
             val destDir = File(jniLibsDir, "arm64-v8a")
             destDir.mkdirs()

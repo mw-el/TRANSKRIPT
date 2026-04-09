@@ -13,7 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,10 +44,9 @@ public class TranscribeFileActivity extends Activity {
     private ScrollView resultArea;
     private TextView   resultText;
     private TextView   savedPathText;
-    private Button     copyButton;
-    private Button     saveButton;
-    private Button     openButton;
-    private Button     shareButton;
+    private ImageButton copyButton;
+    private ImageButton openButton;
+    private ImageButton shareButton;
 
     /** True once the first text chunk has arrived and dots have been hidden. */
     private boolean firstChunkReceived = false;
@@ -71,7 +70,6 @@ public class TranscribeFileActivity extends Activity {
         resultText    = findViewById(R.id.txt_result);
         savedPathText = findViewById(R.id.txt_saved_path);
         copyButton    = findViewById(R.id.btn_copy);
-        saveButton    = findViewById(R.id.btn_save);
         openButton    = findViewById(R.id.btn_open);
         shareButton   = findViewById(R.id.btn_share);
 
@@ -88,8 +86,6 @@ public class TranscribeFileActivity extends Activity {
                 Toast.makeText(this, getString(R.string.transcript_copied), Toast.LENGTH_SHORT).show();
             }
         });
-
-        saveButton.setOnClickListener(v -> saveTranscript());
 
         shareButton.setOnClickListener(v -> {
             String text = resultText.getText().toString();
@@ -227,7 +223,6 @@ public class TranscribeFileActivity extends Activity {
             String text = resultText.getText().toString();
 
             copyButton .setVisibility(View.VISIBLE);
-            saveButton .setVisibility(View.VISIBLE);
             shareButton.setVisibility(View.VISIBLE);
 
             // Auto-copy
@@ -251,9 +246,6 @@ public class TranscribeFileActivity extends Activity {
                                         r.displayName, r.location));
                         savedPathText.setVisibility(View.VISIBLE);
                         openButton.setVisibility(View.VISIBLE);
-                        Toast.makeText(this,
-                                getString(R.string.transcript_saved, r.displayName),
-                                Toast.LENGTH_LONG).show();
                     } else {
                         savedPathText.setText(
                                 getString(R.string.transcript_save_error) + ": " + r.errorMessage);

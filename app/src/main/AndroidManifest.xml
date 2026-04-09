@@ -61,7 +61,7 @@
             android:name=".DictateActivity"
             android:exported="false"
             android:excludeFromRecents="true"
-            android:theme="@style/AppDialogTheme" />
+            android:theme="@style/AppTheme" />
 
         <!-- Recordings manager -->
         <activity
