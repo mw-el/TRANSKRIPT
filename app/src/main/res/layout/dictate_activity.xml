@@ -66,6 +66,7 @@
         android:layout_height="120dp"
         android:layout_gravity="center_horizontal"
         android:src="@drawable/ic_mic"
+        android:tint="@color/white"
         android:scaleType="centerInside"
         android:padding="24dp"
         android:background="@drawable/bg_round_button"

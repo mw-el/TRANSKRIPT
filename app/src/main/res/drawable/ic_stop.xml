@@ -2,9 +2,10 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="48dp"
     android:height="48dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <!-- Stop square icon — simple filled rectangle, no transform needed -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M6,6h12v12H6z"/>
+        android:pathData="M240,720V240h480v480H240Z"/>
 </vector>
