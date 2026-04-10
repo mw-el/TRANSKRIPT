@@ -9,6 +9,8 @@ import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -29,22 +31,25 @@ public class TranscribeFileActivity extends Activity {
 
     private static final String TAG              = "TranscribeFileActivity";
     private static final int    TARGET_SAMPLE_RATE = 16_000;
+    /** 60 seconds of 16 kHz audio — one transcription chunk. */
+    private static final int    CHUNK_SAMPLES    = 60 * TARGET_SAMPLE_RATE; // 960 000
 
-    private static final int STAGE_INIT        = 0;
-    private static final int STAGE_LOADING     = 1;
-    private static final int STAGE_DECODING    = 2;
-    private static final int STAGE_TRANSCRIBE  = 3;
-    private static final int STAGE_DONE        = 4;
-    private static final int STAGE_ERROR       = 5;
+    private static final int STAGE_INIT       = 0;
+    private static final int STAGE_LOADING    = 1;
+    private static final int STAGE_DECODING   = 2;
+    private static final int STAGE_TRANSCRIBE = 3;
+    private static final int STAGE_DONE       = 4;
+    private static final int STAGE_ERROR      = 5;
     private volatile int stage = STAGE_INIT;
 
-    private TextView   statusText;
-    private TextView   detailText;
-    private View       dot1, dot2, dot3;
-    private View       progressArea;
-    private ScrollView resultArea;
+    private TextView    statusText;
+    private TextView    detailText;
+    private View        dot1, dot2, dot3;
+    private View        progressArea;
+    private ScrollView  resultArea;
     private EditText    resultText;
-    private TextView   savedPathText;
+    private TextView    savedPathText;
+    private TextView    processingStatusText;
     private ImageButton copyButton;
     private ImageButton saveButton;
     private ImageButton shareButton;
@@ -61,23 +66,23 @@ public class TranscribeFileActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.transcribe_file_activity);
 
-        statusText    = findViewById(R.id.txt_status);
-        detailText    = findViewById(R.id.txt_detail);
-        dot1          = findViewById(R.id.dot_1);
-        dot2          = findViewById(R.id.dot_2);
-        dot3          = findViewById(R.id.dot_3);
-        progressArea  = findViewById(R.id.progress_area);
-        resultArea    = findViewById(R.id.result_area);
-        resultText    = findViewById(R.id.txt_result);
-        savedPathText = findViewById(R.id.txt_saved_path);
-        copyButton    = findViewById(R.id.btn_copy);
-        saveButton    = findViewById(R.id.btn_save);
-        shareButton   = findViewById(R.id.btn_share);
+        statusText           = findViewById(R.id.txt_status);
+        detailText           = findViewById(R.id.txt_detail);
+        dot1                 = findViewById(R.id.dot_1);
+        dot2                 = findViewById(R.id.dot_2);
+        dot3                 = findViewById(R.id.dot_3);
+        progressArea         = findViewById(R.id.progress_area);
+        resultArea           = findViewById(R.id.result_area);
+        resultText           = findViewById(R.id.txt_result);
+        savedPathText        = findViewById(R.id.txt_saved_path);
+        processingStatusText = findViewById(R.id.txt_processing_status);
+        copyButton           = findViewById(R.id.btn_copy);
+        saveButton           = findViewById(R.id.btn_save);
+        shareButton          = findViewById(R.id.btn_share);
 
         pendingAudioBaseName = getIntent().getStringExtra(DictateActivity.EXTRA_AUDIO_BASE_NAME);
 
         findViewById(R.id.btn_close).setOnClickListener(v -> finish());
-        saveButton.setOnClickListener(v -> saveTranscript());
 
         copyButton.setOnClickListener(v -> {
             String text = resultText.getText().toString();
@@ -87,6 +92,8 @@ public class TranscribeFileActivity extends Activity {
                 Toast.makeText(this, getString(R.string.transcript_copied), Toast.LENGTH_SHORT).show();
             }
         });
+
+        saveButton.setOnClickListener(v -> saveTranscript());
 
         shareButton.setOnClickListener(v -> {
             String text = resultText.getText().toString();
@@ -108,19 +115,19 @@ public class TranscribeFileActivity extends Activity {
     }
 
     // ------------------------------------------------------------------
-    // Pulsing dot animation
+    // Dot animation — made intentionally strong so it's clearly visible
     // ------------------------------------------------------------------
 
     private void startDotAnimation() {
-        animateDot(dot1, 0);
-        animateDot(dot2, 200);
-        animateDot(dot3, 400);
+        animateDot(dot1,   0);
+        animateDot(dot2, 250);
+        animateDot(dot3, 500);
     }
 
     private void animateDot(View dot, long startOffset) {
         if (dot == null) return;
-        AlphaAnimation anim = new AlphaAnimation(0.2f, 1.0f);
-        anim.setDuration(600);
+        AlphaAnimation anim = new AlphaAnimation(0.05f, 1.0f);
+        anim.setDuration(500);
         anim.setStartOffset(startOffset);
         anim.setRepeatMode(Animation.REVERSE);
         anim.setRepeatCount(Animation.INFINITE);
@@ -134,7 +141,7 @@ public class TranscribeFileActivity extends Activity {
     }
 
     // ------------------------------------------------------------------
-    // Save / open
+    // Save / transcript persistence
     // ------------------------------------------------------------------
 
     private void saveTranscript() {
@@ -163,7 +170,7 @@ public class TranscribeFileActivity extends Activity {
     }
 
     // ------------------------------------------------------------------
-    // Transcription callbacks (called from Rust via JNI)
+    // Transcription callbacks (called from Rust via JNI on background thread)
     // ------------------------------------------------------------------
 
     public void onStatusUpdate(String status) {
@@ -180,11 +187,7 @@ public class TranscribeFileActivity extends Activity {
         });
     }
 
-    /**
-     * Called by Rust after each 60-second chunk with the accumulated text so far.
-     * On the first call the pulsing dots are hidden and the text area appears.
-     * On subsequent calls only the text is updated.
-     */
+    /** Called by Rust after each 60-second chunk with all text accumulated so far. */
     public void onTextTranscribed(String text) {
         runOnUiThread(() -> {
             if (!firstChunkReceived) {
@@ -192,15 +195,15 @@ public class TranscribeFileActivity extends Activity {
                 stopDotAnimation();
                 progressArea.setVisibility(View.GONE);
                 resultArea.setVisibility(View.VISIBLE);
+                // Show "still running" indicator
+                processingStatusText.setText("Transkription läuft\u2026");
+                processingStatusText.setVisibility(View.VISIBLE);
             }
             resultText.setText(text);
         });
     }
 
-    /**
-     * Called by Rust once after ALL chunks are done.
-     * Triggers auto-copy, auto-save and reveals the action buttons.
-     */
+    /** Called by Rust once after ALL chunks are transcribed. */
     public void onTranscriptionComplete() {
         runOnUiThread(() -> {
             stage = STAGE_DONE;
@@ -210,7 +213,12 @@ public class TranscribeFileActivity extends Activity {
             saveButton .setVisibility(View.VISIBLE);
             shareButton.setVisibility(View.VISIBLE);
 
-            // Auto-save and optionally rename the source audio file
+            // Briefly show "done" then hide the indicator
+            processingStatusText.setText("Transkription abgeschlossen \u2713");
+            new Handler(Looper.getMainLooper()).postDelayed(
+                    () -> processingStatusText.setVisibility(View.GONE), 3000);
+
+            // Auto-save and rename audio
             final String audioBase = pendingAudioBaseName;
             new Thread(() -> {
                 TranscribeSaver.SaveResult r = TranscribeSaver.saveTranscriptRich(this, text);
@@ -220,13 +228,12 @@ public class TranscribeFileActivity extends Activity {
                 }
                 runOnUiThread(() -> {
                     if (r.isSuccess()) {
-                        savedUri = r.shareUri;
+                        savedUri      = r.shareUri;
                         savedFileName = r.displayName;
                         savedPathText.setText(
                                 getString(R.string.transcript_saved_at,
                                         r.displayName, r.location));
                         savedPathText.setVisibility(View.VISIBLE);
-                        saveButton.setVisibility(View.VISIBLE);
                     } else {
                         savedPathText.setText(
                                 getString(R.string.transcript_save_error) + ": " + r.errorMessage);
@@ -238,14 +245,18 @@ public class TranscribeFileActivity extends Activity {
     }
 
     // ------------------------------------------------------------------
-    // Audio decoding
+    // Interleaved decode + transcribe
+    //
+    // Each 60-second decoded block is handed to Rust immediately via
+    // transcribeChunkNative(), which blocks until Whisper finishes that
+    // chunk and fires onTextTranscribed().  This means text starts
+    // appearing after ~60 s instead of after the full file is decoded.
     // ------------------------------------------------------------------
 
     private Uri getAudioUri() {
         Intent intent = getIntent();
         if (intent == null) return null;
-        String action = intent.getAction();
-        if (Intent.ACTION_SEND.equals(action))
+        if (Intent.ACTION_SEND.equals(intent.getAction()))
             return intent.getParcelableExtra(Intent.EXTRA_STREAM);
         return intent.getData();
     }
@@ -263,35 +274,19 @@ public class TranscribeFileActivity extends Activity {
         detailText.setVisibility(View.VISIBLE);
 
         initNative(this);
+
         new Thread(() -> {
             try {
                 stage = STAGE_DECODING;
                 runOnUiThread(() -> {
                     statusText.setText(getString(R.string.status_decoding));
                     detailText.setText(getString(R.string.status_decoding_detail));
-                });
-                long t0 = System.currentTimeMillis();
-                double durationSec = decodeAndFeedAudio(audioUri);
-                long decodeMs = System.currentTimeMillis() - t0;
-                if (durationSec < 0) {
-                    stage = STAGE_ERROR;
-                    runOnUiThread(() -> {
-                        statusText.setText(getString(R.string.error_decode_empty));
-                        detailText.setText(getString(R.string.error_decode_empty_detail));
-                        stopDotAnimation();
-                    });
-                    return;
-                }
-                Log.i(TAG, "Decoded " + String.format("%.1f", durationSec) + "s in " + decodeMs + "ms");
-                stage = STAGE_TRANSCRIBE;
-                runOnUiThread(() -> {
-                    statusText.setText(getString(R.string.status_transcribing));
-                    detailText.setVisibility(View.GONE);
+                    // Start dots immediately — they'll disappear after the first chunk
                     startDotAnimation();
                 });
-                transcribeAccumulated();
+                decodeAndTranscribeInterleaved(audioUri);
             } catch (Throwable e) {
-                Log.e(TAG, "Error decoding audio", e);
+                Log.e(TAG, "Error during decode/transcribe", e);
                 stage = STAGE_ERROR;
                 final String msg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
                 runOnUiThread(() -> {
@@ -305,13 +300,12 @@ public class TranscribeFileActivity extends Activity {
     }
 
     /**
-     * Decodes the audio at {@code uri}, resamples to {@link #TARGET_SAMPLE_RATE} Hz,
-     * and streams the mono float samples to native memory in small chunks via
-     * {@link #appendAudioSamples}.  No large Java-heap float[] is ever allocated.
-     *
-     * @return estimated duration in seconds, or -1 if no audio track was found.
+     * Decodes {@code uri}, resamples to 16 kHz mono, and feeds the audio to
+     * {@link #transcribeChunkNative} in 60-second blocks — without ever holding
+     * the entire file in memory.  Each call to transcribeChunkNative blocks until
+     * Whisper finishes that chunk, so text trickles in progressively.
      */
-    private double decodeAndFeedAudio(Uri uri) throws IOException {
+    private void decodeAndTranscribeInterleaved(Uri uri) throws IOException {
         MediaExtractor extractor = new MediaExtractor();
         extractor.setDataSource(this, uri, null);
 
@@ -327,16 +321,25 @@ public class TranscribeFileActivity extends Activity {
         }
         if (audioTrackIndex < 0) {
             extractor.release();
-            return -1;
+            stage = STAGE_ERROR;
+            runOnUiThread(() -> {
+                statusText.setText(getString(R.string.error_decode_empty));
+                detailText.setText(getString(R.string.error_decode_empty_detail));
+                stopDotAnimation();
+            });
+            return;
         }
 
         extractor.selectTrack(audioTrackIndex);
         int sampleRate   = inputFormat.getInteger(MediaFormat.KEY_SAMPLE_RATE);
         int channelCount = inputFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT);
 
-        double durationSec = -1;
+        // Estimate total minutes for progress display
+        final int totalMinutes;
         if (inputFormat.containsKey(MediaFormat.KEY_DURATION)) {
-            durationSec = inputFormat.getLong(MediaFormat.KEY_DURATION) / 1_000_000.0;
+            totalMinutes = Math.max(1, (int)(inputFormat.getLong(MediaFormat.KEY_DURATION) / 60_000_000L));
+        } else {
+            totalMinutes = 0;
         }
 
         MediaCodec codec = MediaCodec.createDecoderByType(
@@ -344,18 +347,15 @@ public class TranscribeFileActivity extends Activity {
         codec.configure(inputFormat, null, null, 0);
         codec.start();
 
-        // Prepend 500 ms of silence to avoid decoder warm-up artefacts at the beginning
-        float[] silence = new float[8_000]; // 0.5 s × 16 000 Hz, already zero-initialised
-        appendAudioSamples(silence, 8_000);
+        // Transcription chunk buffer.  Pre-filled with 500 ms of silence (warm-up).
+        float[] chunkBuf = new float[CHUNK_SAMPLES]; // zero-initialised
+        int chunkLen = 8_000;  // reserve first 0.5 s as silence
+        int chunkNum = 0;
 
         final double ratio = (double) sampleRate / TARGET_SAMPLE_RATE;
         double nextOutSrcPos = 0.0;
-        float prevMono = 0.0f;
-        long monoIdx = 0;
-
-        final int CHUNK_SIZE = 8192;
-        float[] chunk = new float[CHUNK_SIZE];
-        int chunkLen = 0;
+        float  prevMono = 0.0f;
+        long   monoIdx  = 0;
 
         int[]     outChannels = {channelCount};
         boolean[] isPcmFloat  = {false};
@@ -363,7 +363,7 @@ public class TranscribeFileActivity extends Activity {
         MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
         boolean inputDone  = false;
         boolean outputDone = false;
-        long timeoutUs = 10_000;
+        long    timeoutUs  = 10_000;
 
         while (!outputDone) {
             if (!inputDone) {
@@ -412,13 +412,16 @@ public class TranscribeFileActivity extends Activity {
                                 mono = sum / ch;
                             }
                             while (nextOutSrcPos <= monoIdx) {
-                                long floorPos = (long) nextOutSrcPos;
-                                double frac   = nextOutSrcPos - floorPos;
-                                float  xFloor = (floorPos == monoIdx) ? mono : prevMono;
-                                chunk[chunkLen++] = (float) (xFloor * (1.0 - frac) + mono * frac);
+                                long   fp   = (long) nextOutSrcPos;
+                                double frac = nextOutSrcPos - fp;
+                                float  xfl  = (fp == monoIdx) ? mono : prevMono;
+                                chunkBuf[chunkLen++] = (float)(xfl * (1.0 - frac) + mono * frac);
                                 nextOutSrcPos += ratio;
-                                if (chunkLen == CHUNK_SIZE) {
-                                    appendAudioSamples(chunk, CHUNK_SIZE);
+                                if (chunkLen == CHUNK_SAMPLES) {
+                                    final int cn = ++chunkNum;
+                                    final int tm = totalMinutes;
+                                    runOnUiThread(() -> updateDecodeProgress(cn, tm));
+                                    transcribeChunkNative(chunkBuf, CHUNK_SAMPLES, false);
                                     chunkLen = 0;
                                 }
                             }
@@ -438,13 +441,16 @@ public class TranscribeFileActivity extends Activity {
                                 mono = sum / ch;
                             }
                             while (nextOutSrcPos <= monoIdx) {
-                                long floorPos = (long) nextOutSrcPos;
-                                double frac   = nextOutSrcPos - floorPos;
-                                float  xFloor = (floorPos == monoIdx) ? mono : prevMono;
-                                chunk[chunkLen++] = (float) (xFloor * (1.0 - frac) + mono * frac);
+                                long   fp   = (long) nextOutSrcPos;
+                                double frac = nextOutSrcPos - fp;
+                                float  xfl  = (fp == monoIdx) ? mono : prevMono;
+                                chunkBuf[chunkLen++] = (float)(xfl * (1.0 - frac) + mono * frac);
                                 nextOutSrcPos += ratio;
-                                if (chunkLen == CHUNK_SIZE) {
-                                    appendAudioSamples(chunk, CHUNK_SIZE);
+                                if (chunkLen == CHUNK_SAMPLES) {
+                                    final int cn = ++chunkNum;
+                                    final int tm = totalMinutes;
+                                    runOnUiThread(() -> updateDecodeProgress(cn, tm));
+                                    transcribeChunkNative(chunkBuf, CHUNK_SAMPLES, false);
                                     chunkLen = 0;
                                 }
                             }
@@ -461,21 +467,33 @@ public class TranscribeFileActivity extends Activity {
         codec.release();
         extractor.release();
 
-        if (chunkLen > 0) {
-            appendAudioSamples(chunk, chunkLen);
-        }
-
-        if (durationSec < 0) {
-            long totalOutSamples = (long) (monoIdx / ratio);
-            durationSec = totalOutSamples / (double) TARGET_SAMPLE_RATE;
-        }
-        return durationSec;
+        // Final (possibly partial) chunk
+        transcribeChunkNative(chunkBuf, chunkLen, true);
     }
+
+    /** Updates status text while a chunk is being transcribed. Runs on UI thread. */
+    private void updateDecodeProgress(int chunkNum, int totalMinutes) {
+        if (stage < STAGE_TRANSCRIBE) {
+            stage = STAGE_TRANSCRIBE;
+            statusText.setText(getString(R.string.status_transcribing));
+            detailText.setVisibility(View.GONE);
+        }
+        if (totalMinutes > 0) {
+            statusText.setText("Transkribiere\u2026 Minute " + chunkNum + " von " + totalMinutes);
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Native interface
+    // ------------------------------------------------------------------
 
     private native void initNative(TranscribeFileActivity activity);
     private native void cleanupNative();
-    /** Appends {@code len} samples from {@code chunk} into native accumulation buffer. */
-    private native void appendAudioSamples(float[] chunk, int len);
-    /** Triggers transcription of everything accumulated via {@link #appendAudioSamples}. */
-    private native void transcribeAccumulated();
+
+    /**
+     * Transcribes {@code len} samples from {@code chunk} synchronously.
+     * Calls onTextTranscribed with accumulated text after each chunk.
+     * Calls onTranscriptionComplete after the last chunk ({@code isLast=true}).
+     */
+    private native void transcribeChunkNative(float[] chunk, int len, boolean isLast);
 }
