@@ -42,9 +42,8 @@
             android:id="@+id/ime_mic_icon"
             android:layout_width="64dp"
             android:layout_height="64dp"
-            android:src="@drawable/ic_mic_ime"
-            android:layout_gravity="center"
-            android:tint="@color/cl_accent"/>
+            android:src="@drawable/ic_transkript_logo"
+            android:layout_gravity="center"/>
 
         <TextView
             android:id="@+id/ime_hint"
