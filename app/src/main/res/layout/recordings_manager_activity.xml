@@ -19,15 +19,15 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/recordings_title"
-            android:textSize="22sp"
+            android:textSize="@dimen/text_title"
             android:fontFamily="@font/poppins_semibold"
             android:textStyle="bold"
             android:textColor="@color/cl_ink"/>
 
         <ImageButton
             android:id="@+id/btn_close"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="@dimen/btn_icon_size"
+            android:layout_height="@dimen/btn_icon_size"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:tint="@color/cl_ink_soft"

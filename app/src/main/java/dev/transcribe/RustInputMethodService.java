@@ -92,6 +92,9 @@ public class RustInputMethodService extends InputMethodService {
             enterButton = view.findViewById(R.id.ime_enter);
             switchKeyboardButton = view.findViewById(R.id.ime_switch_keyboard);
 
+            view.findViewById(R.id.ime_language).setOnClickListener(v ->
+                    LanguagePostProcessor.showPicker(this, null));
+
             switchKeyboardButton.setOnClickListener(v -> {
                 if (isRecording) {
                     pendingSwitchBack = true;
@@ -296,13 +299,14 @@ public class RustInputMethodService extends InputMethodService {
     }
 
     public void onTextTranscribed(String text) {
+        final String processed = LanguagePostProcessor.process(this, text);
         // Remember text so onPcmAvailable() can use it as filename
-        pendingTranscriptForSave = text;
+        pendingTranscriptForSave = processed;
 
         mainHandler.post(() -> {
             InputConnection ic = getCurrentInputConnection();
             if (ic != null) {
-                String committed = text + " ";
+                String committed = processed + " ";
                 ic.commitText(committed, 1);
 
                 if (!pendingSwitchBack && new File(getFilesDir(), "select_transcription").exists()) {

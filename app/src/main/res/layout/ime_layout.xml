@@ -20,8 +20,21 @@
             android:layout_weight="1"
             android:text="Tap to speak"
             android:textColor="#333333"
-            android:textSize="14sp"
+            android:textSize="@dimen/text_button"
             android:paddingStart="8dp"/>
+
+        <!-- Language selector -->
+        <ImageView
+            android:id="@+id/ime_language"
+            android:layout_width="@dimen/btn_icon_size"
+            android:layout_height="32dp"
+            android:src="@drawable/ic_language"
+            android:scaleType="centerInside"
+            android:background="@drawable/bg_backspace"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="Sprache wählen"/>
 
         <ProgressBar
             android:id="@+id/ime_progress"
@@ -34,14 +47,14 @@
     <FrameLayout
         android:id="@+id/ime_record_container"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="@dimen/ime_record_area"
         android:background="@drawable/bg_card"
         android:backgroundTint="#FFFFFF">
 
         <ImageView
             android:id="@+id/ime_mic_icon"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+            android:layout_width="@dimen/ime_mic_icon"
+            android:layout_height="@dimen/ime_mic_icon"
             android:src="@drawable/ic_transkript_logo"
             android:layout_gravity="center"/>
 
@@ -104,7 +117,7 @@
             android:layout_width="64dp"
             android:layout_height="32dp"
             android:text="⌫"
-            android:textSize="24sp"
+            android:textSize="@dimen/text_xlarge"
             android:textColor="#333333"
             android:background="@drawable/bg_backspace"
             android:gravity="center"

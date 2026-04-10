@@ -25,20 +25,60 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/settings_title"
-                android:textSize="22sp"
+                android:textSize="@dimen/text_title"
                 android:fontFamily="@font/poppins_semibold"
                 android:textStyle="bold"
                 android:textColor="@color/cl_ink"/>
 
             <ImageButton
                 android:id="@+id/btn_settings_close"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
+                android:layout_width="@dimen/btn_icon_size"
+                android:layout_height="@dimen/btn_icon_size"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
                 android:tint="@color/cl_ink_soft"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/btn_close"
                 android:padding="10dp"/>
+        </LinearLayout>
+
+        <!-- Section: Sprache -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_section_language_label"
+            style="@style/SectionLabelStyle"
+            android:textAllCaps="true"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="@dimen/space_5"
+            android:layout_marginBottom="@dimen/space_4">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_language_label"
+                android:textColor="@color/cl_ink"
+                android:fontFamily="@font/inter_medium"
+                android:textSize="@dimen/text_normal"
+                android:layout_marginBottom="@dimen/space_2"/>
+
+            <Spinner
+                android:id="@+id/spinner_language"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_3"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_language_desc"
+                android:textColor="@color/cl_ink_soft"
+                android:fontFamily="@font/inter_regular"
+                android:textSize="@dimen/text_small"/>
         </LinearLayout>
 
         <!-- Section: Aufnahme -->
@@ -75,7 +115,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/setting_auto_record"
-                        android:textSize="15sp"
+                        android:textSize="@dimen/text_normal"
                         android:fontFamily="@font/inter_medium"
                         android:textColor="@color/cl_ink"/>
 
@@ -83,7 +123,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/setting_auto_record_desc"
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_small"
                         android:fontFamily="@font/inter_regular"
                         android:textColor="@color/cl_ink_soft"
                         android:layout_marginTop="2dp"/>
@@ -120,7 +160,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/setting_select_transcription"
-                        android:textSize="15sp"
+                        android:textSize="@dimen/text_normal"
                         android:fontFamily="@font/inter_medium"
                         android:textColor="@color/cl_ink"/>
 
@@ -128,7 +168,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/setting_select_transcription_desc"
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_small"
                         android:fontFamily="@font/inter_regular"
                         android:textColor="@color/cl_ink_soft"
                         android:layout_marginTop="2dp"/>
@@ -165,7 +205,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/setting_pause_audio"
-                        android:textSize="15sp"
+                        android:textSize="@dimen/text_normal"
                         android:fontFamily="@font/inter_medium"
                         android:textColor="@color/cl_ink"/>
 
@@ -173,7 +213,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/setting_pause_audio_desc"
-                        android:textSize="13sp"
+                        android:textSize="@dimen/text_small"
                         android:fontFamily="@font/inter_regular"
                         android:textColor="@color/cl_ink_soft"
                         android:layout_marginTop="2dp"/>
@@ -208,7 +248,7 @@
                 android:text="@string/settings_folder_label"
                 android:textColor="@color/cl_ink"
                 android:fontFamily="@font/inter_medium"
-                android:textSize="15sp"
+                android:textSize="@dimen/text_normal"
                 android:layout_marginBottom="@dimen/space_2"/>
 
             <TextView
@@ -217,7 +257,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/cl_ink_soft"
                 android:fontFamily="@font/inter_regular"
-                android:textSize="13sp"
+                android:textSize="@dimen/text_small"
                 android:layout_marginBottom="@dimen/space_3"/>
 
             <TextView
@@ -226,7 +266,7 @@
                 android:text="@string/settings_folder_hint"
                 android:textColor="@color/cl_ink_soft"
                 android:fontFamily="@font/inter_regular"
-                android:textSize="13sp"
+                android:textSize="@dimen/text_small"
                 android:layout_marginBottom="@dimen/space_2"/>
 
             <TextView
@@ -235,7 +275,7 @@
                 android:text="@string/settings_folder_default_hint"
                 android:textColor="@color/cl_accent"
                 android:fontFamily="@font/inter_regular"
-                android:textSize="13sp"
+                android:textSize="@dimen/text_small"
                 android:layout_marginBottom="@dimen/space_4"/>
 
             <LinearLayout
@@ -283,7 +323,7 @@
                 android:text="@string/settings_email_hint_desc"
                 android:textColor="@color/cl_ink_soft"
                 android:fontFamily="@font/inter_regular"
-                android:textSize="13sp"
+                android:textSize="@dimen/text_small"
                 android:layout_marginBottom="@dimen/space_3"/>
 
             <EditText
@@ -297,7 +337,7 @@
                 android:background="@drawable/bg_edit_text"
                 android:padding="@dimen/space_3"
                 android:fontFamily="@font/inter_regular"
-                android:textSize="15sp"
+                android:textSize="@dimen/text_normal"
                 android:layout_marginBottom="@dimen/space_3"/>
 
             <Button

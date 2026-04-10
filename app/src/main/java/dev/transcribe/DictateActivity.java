@@ -85,6 +85,8 @@ public class DictateActivity extends Activity {
 
         btnClose.setOnClickListener(v -> finish());
         btnLock.setOnClickListener(v -> toggleScreenLock());
+        findViewById(R.id.btn_language).setOnClickListener(v ->
+                LanguagePostProcessor.showPicker(this, null));
 
         btnRecord.setOnClickListener(v -> {
             if (isRecording) stopAndTranscribe();

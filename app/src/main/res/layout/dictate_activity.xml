@@ -22,15 +22,26 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/dictate_title"
-            android:textSize="20sp"
+            android:textSize="@dimen/text_heading"
             android:fontFamily="@font/poppins_semibold"
             android:textStyle="bold"
             android:textColor="@color/cl_ink"/>
 
+        <!-- Language selector button -->
+        <ImageButton
+            android:id="@+id/btn_language"
+            android:layout_width="@dimen/btn_icon_size"
+            android:layout_height="@dimen/btn_icon_size"
+            android:src="@drawable/ic_language"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:tint="@color/cl_ink_soft"
+            android:contentDescription="Sprache wählen"
+            android:padding="8dp"/>
+
         <ImageButton
             android:id="@+id/btn_close"
-            android:layout_width="44dp"
-            android:layout_height="44dp"
+            android:layout_width="@dimen/btn_icon_size"
+            android:layout_height="@dimen/btn_icon_size"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:tint="@color/cl_ink_soft"
@@ -50,7 +61,7 @@
             android:text="@string/dictate_subtitle"
             android:textColor="@color/cl_ink_soft"
             android:fontFamily="@font/inter_regular"
-            android:textSize="14sp"
+            android:textSize="@dimen/text_button"
             android:layout_marginBottom="@dimen/space_5"/>
 
         <!-- Spacer to push button to center vertically -->
@@ -63,15 +74,15 @@
         <dev.transcribe.WaveformView
             android:id="@+id/waveform_view"
             android:layout_width="match_parent"
-            android:layout_height="72dp"
+            android:layout_height="@dimen/waveform_height"
             android:visibility="invisible"
             android:layout_marginBottom="@dimen/space_4"/>
 
         <!-- Round record button centered -->
         <ImageButton
             android:id="@+id/btn_record"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
+            android:layout_width="@dimen/btn_record_size"
+            android:layout_height="@dimen/btn_record_size"
             android:layout_gravity="center_horizontal"
             android:src="@drawable/ic_mic"
             android:tint="@color/white"
@@ -90,7 +101,7 @@
             android:layout_gravity="center_horizontal"
             android:text="00:00"
             android:textColor="@color/cl_ink"
-            android:textSize="36sp"
+            android:textSize="@dimen/text_timer"
             android:fontFamily="monospace"
             android:layout_marginBottom="@dimen/space_2"/>
 
@@ -103,7 +114,7 @@
             android:text="@string/dictate_status_idle"
             android:textColor="@color/cl_ink_soft"
             android:fontFamily="@font/inter_regular"
-            android:textSize="14sp"
+            android:textSize="@dimen/text_button"
             android:layout_marginBottom="@dimen/space_2"/>
 
         <!-- Hint shown during recording -->
@@ -116,7 +127,7 @@
             android:text="Zum Stoppen und Transkribieren einfach Stopp-Taste klicken"
             android:textColor="@color/cl_ink_soft"
             android:fontFamily="@font/inter_regular"
-            android:textSize="13sp"
+            android:textSize="@dimen/text_small"
             android:visibility="gone"/>
 
         <!-- Lock section: shown during recording to protect against accidental touches -->
@@ -131,8 +142,8 @@
 
             <ImageButton
                 android:id="@+id/btn_screen_lock"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
+                android:layout_width="@dimen/btn_action_size"
+                android:layout_height="@dimen/btn_action_size"
                 android:src="@drawable/ic_lock_open"
                 android:background="?android:attr/selectableItemBackgroundBorderless"
                 android:padding="12dp"
@@ -145,7 +156,7 @@
                 android:text="Touch sperren – Aufnahme schützen"
                 android:textColor="@color/cl_ink_soft"
                 android:fontFamily="@font/inter_regular"
-                android:textSize="12sp"
+                android:textSize="@dimen/text_xsmall"
                 android:gravity="center"
                 android:layout_marginTop="@dimen/space_1"/>
 

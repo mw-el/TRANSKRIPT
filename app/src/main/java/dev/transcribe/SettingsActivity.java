@@ -6,8 +6,11 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +30,7 @@ public class SettingsActivity extends Activity {
     public static final String PREFS_NAME          = "transkript_settings";
     public static final String KEY_SAVE_FOLDER_URI = "save_folder_uri";
     public static final String KEY_EMAIL_ADDRESS   = "default_email";
+    public static final String KEY_LANGUAGE        = "target_language";
 
     private static final int    REQ_PICK_FOLDER      = 301;
     private static final String TAG                  = "SettingsActivity";
@@ -36,6 +40,7 @@ public class SettingsActivity extends Activity {
 
     private TextView folderPathText;
     private EditText emailInput;
+    private Spinner  languageSpinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +49,7 @@ public class SettingsActivity extends Activity {
 
         folderPathText = findViewById(R.id.txt_folder_path);
         emailInput     = findViewById(R.id.edit_email);
+        languageSpinner = findViewById(R.id.spinner_language);
 
         Button chooseFolderButton = findViewById(R.id.btn_choose_folder);
         Button resetFolderButton  = findViewById(R.id.btn_reset_folder);
@@ -55,6 +61,7 @@ public class SettingsActivity extends Activity {
         bindFlagSwitch(R.id.switch_auto_record,          FLAG_AUTO_RECORD);
         bindFlagSwitch(R.id.switch_select_transcription, FLAG_SELECT_TRANSCRIPT);
         bindFlagSwitch(R.id.switch_pause_audio,          FLAG_PAUSE_AUDIO);
+        bindLanguageSpinner();
 
         chooseFolderButton.setOnClickListener(v -> openFolderPicker());
         resetFolderButton .setOnClickListener(v -> resetFolder());
@@ -146,6 +153,40 @@ public class SettingsActivity extends Activity {
             } else {
                 flag.delete();
             }
+        });
+    }
+
+    // ------------------------------------------------------------------
+    // Language selection
+    // ------------------------------------------------------------------
+
+    private void bindLanguageSpinner() {
+        String[] codes = getResources().getStringArray(R.array.language_codes);
+        String[] names = getResources().getStringArray(R.array.language_display_names);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, names);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        languageSpinner.setAdapter(adapter);
+
+        // Select the currently saved language
+        String saved = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .getString(KEY_LANGUAGE, LanguagePostProcessor.DEFAULT_LANGUAGE);
+        for (int i = 0; i < codes.length; i++) {
+            if (codes[i].equals(saved)) {
+                languageSpinner.setSelection(i);
+                break;
+            }
+        }
+
+        languageSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, android.view.View view,
+                                       int position, long id) {
+                getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                        .edit().putString(KEY_LANGUAGE, codes[position]).apply();
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
 

@@ -20,7 +20,7 @@
             android:layout_weight="1"
             android:text="..."
             android:textColor="#FFFFFF"
-            android:textSize="18sp"
+            android:textSize="@dimen/text_section"
             android:shadowColor="#000000"
             android:shadowDx="1"
             android:shadowDy="1"

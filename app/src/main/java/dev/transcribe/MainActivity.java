@@ -10,9 +10,11 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.PopupMenu;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
@@ -160,6 +162,7 @@ public class MainActivity extends Activity {
 
         int dp24 = (int)(24 * getResources().getDisplayMetrics().density);
         int dp8  = (int)(8  * getResources().getDisplayMetrics().density);
+        int dp12 = (int)(12 * getResources().getDisplayMetrics().density);
 
         android.widget.LinearLayout root = new android.widget.LinearLayout(this);
         root.setOrientation(android.widget.LinearLayout.VERTICAL);
@@ -179,10 +182,50 @@ public class MainActivity extends Activity {
         text.setLineSpacing(0, 1.4f);
         root.addView(text);
 
+        // Language selection
+        android.widget.TextView langLabel = new android.widget.TextView(this);
+        langLabel.setText(getString(R.string.settings_language_label));
+        langLabel.setTextSize(14);
+        langLabel.setTextColor(getColor(R.color.cl_ink));
+        android.widget.LinearLayout.LayoutParams labelParams =
+                new android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
+        labelParams.topMargin = dp12;
+        langLabel.setLayoutParams(labelParams);
+        root.addView(langLabel);
+
+        final String[] codes = getResources().getStringArray(R.array.language_codes);
+        final String[] names = getResources().getStringArray(R.array.language_display_names);
+        Spinner langSpinner = new Spinner(this);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, names);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        langSpinner.setAdapter(adapter);
+
+        String currentLang = getSharedPreferences(SettingsActivity.PREFS_NAME, MODE_PRIVATE)
+                .getString(SettingsActivity.KEY_LANGUAGE, LanguagePostProcessor.DEFAULT_LANGUAGE);
+        for (int i = 0; i < codes.length; i++) {
+            if (codes[i].equals(currentLang)) { langSpinner.setSelection(i); break; }
+        }
+        android.widget.LinearLayout.LayoutParams spinnerParams =
+                new android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                        android.widget.LinearLayout.LayoutParams.WRAP_CONTENT);
+        spinnerParams.topMargin = dp8;
+        langSpinner.setLayoutParams(spinnerParams);
+        root.addView(langSpinner);
+
         new android.app.AlertDialog.Builder(this, R.style.AppDialogTheme)
                 .setTitle("App einrichten")
                 .setView(root)
-                .setPositiveButton("Verstanden", null)
+                .setPositiveButton("Weiter", (dialog, which) -> {
+                    int pos = langSpinner.getSelectedItemPosition();
+                    if (pos >= 0 && pos < codes.length) {
+                        getSharedPreferences(SettingsActivity.PREFS_NAME, MODE_PRIVATE)
+                                .edit().putString(SettingsActivity.KEY_LANGUAGE, codes[pos]).apply();
+                    }
+                })
                 .show();
     }
 

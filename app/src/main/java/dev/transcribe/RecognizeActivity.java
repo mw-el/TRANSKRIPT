@@ -115,9 +115,10 @@ public class RecognizeActivity extends Activity {
 
     // Called from Rust – keep same method name as IME for code reuse
     public void onTextTranscribed(String text) {
+        final String processed = LanguagePostProcessor.process(this, text);
         runOnUiThread(() -> {
             ArrayList<String> results = new ArrayList<>();
-            results.add(text);
+            results.add(processed);
 
             Intent data = new Intent();
             data.putStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS, results);

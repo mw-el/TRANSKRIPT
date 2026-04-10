@@ -9,8 +9,8 @@
     <!-- Close (discard) -->
     <ImageButton
         android:id="@+id/btn_close"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="@dimen/btn_close_sm"
+        android:layout_height="@dimen/btn_close_sm"
         android:layout_gravity="top|end"
         android:background="@android:color/transparent"
         android:contentDescription="Close"
@@ -25,14 +25,14 @@
 
         <dev.transcribe.MicLevelView
             android:id="@+id/mic_level"
-            android:layout_width="220dp"
-            android:layout_height="220dp"
+            android:layout_width="@dimen/mic_ring_size"
+            android:layout_height="@dimen/mic_ring_size"
             android:layout_gravity="center" />
 
         <ImageView
             android:id="@+id/mic_icon"
-            android:layout_width="72dp"
-            android:layout_height="72dp"
+            android:layout_width="@dimen/mic_icon_size"
+            android:layout_height="@dimen/mic_icon_size"
             android:layout_gravity="center"
             android:src="@android:drawable/ic_btn_speak_now"
             android:tint="#FFFFFF" />
@@ -45,7 +45,7 @@
             android:layout_marginBottom="18dp"
             android:text="Listening... (Tap to stop)"
             android:textColor="#FFFFFF"
-            android:textSize="18sp" />
+            android:textSize="@dimen/text_section" />
     </FrameLayout>
 
 </FrameLayout>

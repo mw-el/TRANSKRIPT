@@ -120,4 +120,23 @@
     <string name="recordings_save">Speichern</string>
     <string name="settings_section_recording">Aufnahme</string>
     <string name="toast_copied">Kopiert</string>
+
+    <!-- Sprachauswahl -->
+    <string name="settings_section_language_label">SPRACHE</string>
+    <string name="settings_language_label">Zielsprache</string>
+    <string name="settings_language_desc">Legt die Sprache der Transkription fest. Bei DE-CH wird ß automatisch durch ss ersetzt.</string>
+    <string-array name="language_display_names">
+        <item>Deutsch (DE)</item>
+        <item>Deutsch (CH)</item>
+        <item>English</item>
+        <item>Français</item>
+        <item>Italiano</item>
+    </string-array>
+    <string-array name="language_codes">
+        <item>de-DE</item>
+        <item>de-CH</item>
+        <item>en</item>
+        <item>fr</item>
+        <item>it</item>
+    </string-array>
 </resources>

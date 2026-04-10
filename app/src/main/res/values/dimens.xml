@@ -12,4 +12,28 @@
     <dimen name="space_5">24dp</dimen>
     <dimen name="space_6">32dp</dimen>
     <dimen name="space_7">48dp</dimen>
+
+    <!-- Text sizes (override in values-sw320dp for small screens) -->
+    <dimen name="text_display">26sp</dimen>
+    <dimen name="text_title">22sp</dimen>
+    <dimen name="text_heading">20sp</dimen>
+    <dimen name="text_section">18sp</dimen>
+    <dimen name="text_large">16sp</dimen>
+    <dimen name="text_normal">15sp</dimen>
+    <dimen name="text_button">14sp</dimen>
+    <dimen name="text_small">13sp</dimen>
+    <dimen name="text_xsmall">12sp</dimen>
+    <dimen name="text_timer">36sp</dimen>
+    <dimen name="text_xlarge">24sp</dimen>
+
+    <!-- Icon / button sizes (override in values-sw320dp for small screens) -->
+    <dimen name="btn_icon_size">44dp</dimen>
+    <dimen name="btn_record_size">120dp</dimen>
+    <dimen name="btn_action_size">56dp</dimen>
+    <dimen name="btn_close_sm">40dp</dimen>
+    <dimen name="mic_ring_size">220dp</dimen>
+    <dimen name="mic_icon_size">72dp</dimen>
+    <dimen name="waveform_height">72dp</dimen>
+    <dimen name="ime_record_area">200dp</dimen>
+    <dimen name="ime_mic_icon">64dp</dimen>
 </resources>

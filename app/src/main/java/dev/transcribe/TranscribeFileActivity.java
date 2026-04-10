@@ -175,9 +175,10 @@ public class TranscribeFileActivity extends Activity {
 
     /** Called by Rust after each 60-second chunk with all text accumulated so far. */
     public void onTextTranscribed(String text) {
+        final String processed = LanguagePostProcessor.process(this, text);
         runOnUiThread(() -> {
             setPillText("Transkription läuft\u2026");
-            resultText.setText(text);
+            resultText.setText(processed);
         });
     }
 
