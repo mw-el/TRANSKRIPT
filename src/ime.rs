@@ -8,7 +8,7 @@ use crate::voice_session::{self, VoiceSessionState};
 static IME_STATE: Lazy<Mutex<Option<VoiceSessionState>>> = Lazy::new(|| Mutex::new(None));
 
 #[no_mangle]
-pub unsafe extern "system" fn Java_dev_notune_transcribe_RustInputMethodService_initNative(
+pub unsafe extern "system" fn Java_dev_transcribe_RustInputMethodService_initNative(
     env: JNIEnv,
     _class: JClass,
     service: JObject,
@@ -18,7 +18,7 @@ pub unsafe extern "system" fn Java_dev_notune_transcribe_RustInputMethodService_
 }
 
 #[no_mangle]
-pub unsafe extern "system" fn Java_dev_notune_transcribe_RustInputMethodService_cleanupNative(
+pub unsafe extern "system" fn Java_dev_transcribe_RustInputMethodService_cleanupNative(
     _env: JNIEnv,
     _class: JClass,
 ) {
@@ -26,7 +26,7 @@ pub unsafe extern "system" fn Java_dev_notune_transcribe_RustInputMethodService_
 }
 
 #[no_mangle]
-pub unsafe extern "system" fn Java_dev_notune_transcribe_RustInputMethodService_startRecording(
+pub unsafe extern "system" fn Java_dev_transcribe_RustInputMethodService_startRecording(
     env: JNIEnv,
     _class: JClass,
 ) {
@@ -37,7 +37,7 @@ pub unsafe extern "system" fn Java_dev_notune_transcribe_RustInputMethodService_
 }
 
 #[no_mangle]
-pub unsafe extern "system" fn Java_dev_notune_transcribe_RustInputMethodService_stopRecording(
+pub unsafe extern "system" fn Java_dev_transcribe_RustInputMethodService_stopRecording(
     env: JNIEnv,
     _class: JClass,
 ) {
@@ -48,7 +48,7 @@ pub unsafe extern "system" fn Java_dev_notune_transcribe_RustInputMethodService_
 }
 
 #[no_mangle]
-pub unsafe extern "system" fn Java_dev_notune_transcribe_RustInputMethodService_cancelRecording(
+pub unsafe extern "system" fn Java_dev_transcribe_RustInputMethodService_cancelRecording(
     env: JNIEnv,
     _class: JClass,
 ) {

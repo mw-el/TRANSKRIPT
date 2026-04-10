@@ -37,7 +37,7 @@ fn notify_complete(env: &mut JNIEnv, obj: &JObject) {
 }
 
 #[no_mangle]
-pub unsafe extern "system" fn Java_dev_notune_transcribe_TranscribeFileActivity_initNative(
+pub unsafe extern "system" fn Java_dev_transcribe_TranscribeFileActivity_initNative(
     env: JNIEnv,
     _class: JClass,
     activity: JObject,
@@ -67,7 +67,7 @@ pub unsafe extern "system" fn Java_dev_notune_transcribe_TranscribeFileActivity_
 }
 
 #[no_mangle]
-pub unsafe extern "system" fn Java_dev_notune_transcribe_TranscribeFileActivity_cleanupNative(
+pub unsafe extern "system" fn Java_dev_transcribe_TranscribeFileActivity_cleanupNative(
     _env: JNIEnv,
     _class: JClass,
 ) {
@@ -82,7 +82,7 @@ pub unsafe extern "system" fn Java_dev_notune_transcribe_TranscribeFileActivity_
 /// Because this runs on Java's background thread the JNI env is already attached
 /// and callbacks can be issued directly without spawning another thread.
 #[no_mangle]
-pub unsafe extern "system" fn Java_dev_notune_transcribe_TranscribeFileActivity_transcribeChunkNative(
+pub unsafe extern "system" fn Java_dev_transcribe_TranscribeFileActivity_transcribeChunkNative(
     mut env: JNIEnv,
     _class: JClass,
     samples: JFloatArray,
