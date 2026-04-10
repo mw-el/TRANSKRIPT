@@ -105,7 +105,7 @@
         <!-- FileProvider for sharing internally saved transcripts and recordings -->
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="dev.notune.transcribe.fileprovider"
+            android:authorities="dev.transcribe.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

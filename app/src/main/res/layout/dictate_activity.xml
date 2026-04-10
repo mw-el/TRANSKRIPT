@@ -60,7 +60,7 @@
             android:layout_weight="1"/>
 
         <!-- Waveform view (INVISIBLE at rest, VISIBLE during recording) -->
-        <dev.notune.transcribe.WaveformView
+        <dev.transcribe.WaveformView
             android:id="@+id/waveform_view"
             android:layout_width="match_parent"
             android:layout_height="72dp"

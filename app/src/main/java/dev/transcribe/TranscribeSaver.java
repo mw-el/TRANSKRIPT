@@ -1,4 +1,4 @@
-package dev.notune.transcribe;
+package dev.transcribe;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -28,7 +28,7 @@ public final class TranscribeSaver {
 
     private static final String TAG         = "TranscribeSaver";
     private static final String DEFAULT_DIR = "recordings/transkript";
-    private static final String AUTHORITY   = "dev.notune.transcribe.fileprovider";
+    private static final String AUTHORITY   = "dev.transcribe.fileprovider";
 
     private TranscribeSaver() {}
 

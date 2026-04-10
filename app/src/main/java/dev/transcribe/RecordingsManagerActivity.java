@@ -1,4 +1,4 @@
-package dev.notune.transcribe;
+package dev.transcribe;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -47,7 +47,7 @@ import java.util.Map;
 public class RecordingsManagerActivity extends Activity {
 
     private static final String TAG       = "RecordingsManager";
-    private static final String AUTHORITY = "dev.notune.transcribe.fileprovider";
+    private static final String AUTHORITY = "dev.transcribe.fileprovider";
     private static final String INTERNAL_DIR = "recordings/transkript";
 
     /** Represents a discovered file, either internal (File) or SAF (DocumentFile). */
@@ -260,7 +260,7 @@ public class RecordingsManagerActivity extends Activity {
 
         row.addView(makeBadge("Text"));
 
-        ImageButton editBtn = makeRowIconButton(R.drawable.ic_rename, getColor(R.color.cl_ink), dp(4));
+        ImageButton editBtn = makeRowIconButton(R.drawable.ic_edit_doc, getColor(R.color.cl_ink), dp(4));
         editBtn.setOnClickListener(v -> showEditDialog(entry, group));
         row.addView(editBtn);
 

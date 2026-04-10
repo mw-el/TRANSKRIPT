@@ -1,8 +1,9 @@
-package dev.notune.transcribe;
+package dev.transcribe;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.media.MediaRecorder;
+import android.os.Build;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,7 +25,7 @@ import java.util.Locale;
 public class DictateActivity extends Activity {
 
     private static final String TAG       = "DictateActivity";
-    private static final String AUTHORITY = "dev.notune.transcribe.fileprovider";
+    private static final String AUTHORITY = "dev.transcribe.fileprovider";
 
     /** Extra key: timestamp-based base name of the already-saved audio file. */
     public static final String EXTRA_AUDIO_BASE_NAME = "audio_base_name";
@@ -89,13 +90,18 @@ public class DictateActivity extends Activity {
         });
     }
 
+    @SuppressWarnings("deprecation")
     private void startRecording() {
         String ts = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         outputFile = new File(getCacheDir(), "diktat_" + ts + ".m4a");
         // Base name uses date format compatible with FileNameHelper (for sorting/grouping)
         audioBaseName = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.getDefault()).format(new Date());
 
-        recorder = new MediaRecorder();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            recorder = new MediaRecorder(this);
+        } else {
+            recorder = new MediaRecorder();
+        }
         recorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
         recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);

@@ -1,4 +1,4 @@
-package dev.notune.transcribe;
+package dev.transcribe;
 
 import java.text.Normalizer;
 import java.time.LocalDate;

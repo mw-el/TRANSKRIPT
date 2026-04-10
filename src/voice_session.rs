@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
-use jni::objects::{GlobalRef, JObject, JByteArray};
+use jni::objects::{GlobalRef, JObject};
 use jni::JNIEnv;
 use transcribe_rs::TranscriptionEngine;
 

@@ -1,4 +1,4 @@
-package dev.notune.transcribe;
+package dev.transcribe;
 
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;

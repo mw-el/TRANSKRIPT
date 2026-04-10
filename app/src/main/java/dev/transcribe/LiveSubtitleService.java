@@ -1,4 +1,4 @@
-package dev.notune.transcribe;
+package dev.transcribe;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -30,8 +30,8 @@ import android.widget.LinearLayout;
 
 public class LiveSubtitleService extends Service {
     private static final String TAG = "LiveSubtitleService";
-    public static final String ACTION_START = "dev.notune.transcribe.START_SUBTITLES";
-    public static final String ACTION_STOP = "dev.notune.transcribe.STOP_SUBTITLES";
+    public static final String ACTION_START = "dev.transcribe.START_SUBTITLES";
+    public static final String ACTION_STOP = "dev.transcribe.STOP_SUBTITLES";
     private static final String CHANNEL_ID = "LiveSubtitlesChannel";
     private static final int NOTIFICATION_ID = 12345;
 
@@ -65,6 +65,7 @@ public class LiveSubtitleService extends Service {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent == null) return START_NOT_STICKY;
 
@@ -83,7 +84,12 @@ public class LiveSubtitleService extends Service {
             }
 
             int code = intent.getIntExtra("code", 0);
-            Intent data = intent.getParcelableExtra("data");
+            Intent data;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                data = intent.getParcelableExtra("data", Intent.class);
+            } else {
+                data = intent.getParcelableExtra("data");
+            }
             
             Log.d(TAG, "Received start command. Code: " + code + ", Data: " + data);
             
@@ -154,12 +160,7 @@ public class LiveSubtitleService extends Service {
             startService(stopIntent);
         });
         
-        int layoutFlag;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            layoutFlag = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
-        } else {
-            layoutFlag = WindowManager.LayoutParams.TYPE_PHONE;
-        }
+        int layoutFlag = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
 
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,

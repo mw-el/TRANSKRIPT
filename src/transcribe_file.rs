@@ -13,6 +13,7 @@ use crate::engine;
 static ACCUMULATED: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new(String::new()));
 
 struct TranscribeFileState {
+    #[allow(dead_code)]
     jvm: Arc<jni::JavaVM>,
     target_ref: jni::objects::GlobalRef,
 }

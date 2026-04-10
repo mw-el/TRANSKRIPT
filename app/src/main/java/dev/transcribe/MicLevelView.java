@@ -1,4 +1,4 @@
-package dev.notune.transcribe;
+package dev.transcribe;
 
 import android.animation.ValueAnimator;
 import android.content.Context;

@@ -1,9 +1,10 @@
-package dev.notune.transcribe;
+package dev.transcribe;
 
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Intent;
+import android.os.Build;
 import android.media.MediaCodec;
 import android.media.MediaExtractor;
 import android.media.MediaFormat;
@@ -253,11 +254,17 @@ public class TranscribeFileActivity extends Activity {
     // appearing after ~60 s instead of after the full file is decoded.
     // ------------------------------------------------------------------
 
+    @SuppressWarnings("deprecation")
     private Uri getAudioUri() {
         Intent intent = getIntent();
         if (intent == null) return null;
-        if (Intent.ACTION_SEND.equals(intent.getAction()))
-            return intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        if (Intent.ACTION_SEND.equals(intent.getAction())) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                return intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri.class);
+            } else {
+                return intent.getParcelableExtra(Intent.EXTRA_STREAM);
+            }
+        }
         return intent.getData();
     }
 

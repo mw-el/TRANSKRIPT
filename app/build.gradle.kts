@@ -6,12 +6,12 @@ plugins {
 }
 
 android {
-    namespace = "dev.notune.transcribe"
+    namespace = "dev.transcribe"
     compileSdk = 35
     ndkVersion = "28.0.12433566"
 
     defaultConfig {
-        applicationId = "dev.notune.transcribe"
+        applicationId = "dev.transcribe"
         minSdk = 26
         targetSdk = 35
         versionCode = 28
@@ -41,9 +41,11 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
+
+
 
     // Source sets — the Rust-built .so files land in jniLibs via cargo-ndk
     sourceSets {

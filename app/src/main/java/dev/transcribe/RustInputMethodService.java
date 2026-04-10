@@ -1,8 +1,10 @@
-package dev.notune.transcribe;
+package dev.transcribe;
 
 import android.inputmethodservice.InputMethodService;
 import android.view.View;
 import android.view.inputmethod.InputConnection;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -73,8 +75,8 @@ public class RustInputMethodService extends InputMethodService {
         try {
             View view = getLayoutInflater().inflate(R.layout.ime_layout, null);
 
-            view.setOnApplyWindowInsetsListener((v, insets) -> {
-                int paddingBottom = insets.getSystemWindowInsetBottom();
+            ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+                int paddingBottom = insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom;
                 int originalPaddingBottom = v.getPaddingTop();
                 v.setPadding(v.getPaddingLeft(), v.getPaddingTop(), v.getPaddingRight(), originalPaddingBottom + paddingBottom);
                 return insets;
@@ -205,6 +207,7 @@ public class RustInputMethodService extends InputMethodService {
             });
 
             updateUiState();
+            micIcon.setColorFilter(0xFFE07A43); // orange on initial load
             return view;
         } catch (Exception e) {
             Log.e(TAG, "Error in onCreateInputView", e);
@@ -252,11 +255,11 @@ public class RustInputMethodService extends InputMethodService {
     private void updateRecordButtonUI(boolean recording) {
         isRecording = recording;
         if (recording) {
-            micIcon.setColorFilter(0xFFF44336);
+            micIcon.setColorFilter(0xFFF44336); // red while recording
             statusView.setText("Listening...");
             hintView.setText("Tap to Stop");
         } else {
-            micIcon.setColorFilter(0xFF2196F3);
+            micIcon.setColorFilter(0xFFE07A43); // orange (app accent) when idle
             statusView.setText("Processing...");
             hintView.setText("Tap to Record");
         }
