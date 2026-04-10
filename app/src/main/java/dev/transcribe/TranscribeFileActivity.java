@@ -13,11 +13,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,20 +43,19 @@ public class TranscribeFileActivity extends Activity {
     private static final int STAGE_ERROR      = 5;
     private volatile int stage = STAGE_INIT;
 
-    private TextView    statusText;
-    private TextView    detailText;
-    private View        dot1, dot2, dot3;
-    private View        progressArea;
     private ScrollView  resultArea;
     private EditText    resultText;
     private TextView    savedPathText;
-    private TextView    processingStatusText;
     private ImageButton copyButton;
     private ImageButton saveButton;
     private ImageButton shareButton;
 
-    /** True once the first text chunk has arrived and dots have been hidden. */
-    private boolean firstChunkReceived = false;
+    // Floating status pill
+    private View        pillStatus;
+    private TextView    pillText;
+    private ProgressBar pillSpinner;
+    private float       pillDragStartX, pillDragStartY;
+    private float       pillTouchRawX,  pillTouchRawY;
 
     private Uri    savedUri;
     private String savedFileName;
@@ -67,19 +66,33 @@ public class TranscribeFileActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.transcribe_file_activity);
 
-        statusText           = findViewById(R.id.txt_status);
-        detailText           = findViewById(R.id.txt_detail);
-        dot1                 = findViewById(R.id.dot_1);
-        dot2                 = findViewById(R.id.dot_2);
-        dot3                 = findViewById(R.id.dot_3);
-        progressArea         = findViewById(R.id.progress_area);
-        resultArea           = findViewById(R.id.result_area);
-        resultText           = findViewById(R.id.txt_result);
-        savedPathText        = findViewById(R.id.txt_saved_path);
-        processingStatusText = findViewById(R.id.txt_processing_status);
-        copyButton           = findViewById(R.id.btn_copy);
-        saveButton           = findViewById(R.id.btn_save);
-        shareButton          = findViewById(R.id.btn_share);
+        resultArea    = findViewById(R.id.result_area);
+        resultText    = findViewById(R.id.txt_result);
+        savedPathText = findViewById(R.id.txt_saved_path);
+        copyButton    = findViewById(R.id.btn_copy);
+        saveButton    = findViewById(R.id.btn_save);
+        shareButton   = findViewById(R.id.btn_share);
+
+        pillStatus  = findViewById(R.id.pill_status);
+        pillText    = findViewById(R.id.pill_text);
+        pillSpinner = findViewById(R.id.pill_spinner);
+        pillStatus.setOnTouchListener((v, event) -> {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    pillDragStartX = v.getX();
+                    pillDragStartY = v.getY();
+                    pillTouchRawX  = event.getRawX();
+                    pillTouchRawY  = event.getRawY();
+                    return true;
+                case MotionEvent.ACTION_MOVE:
+                    v.setX(pillDragStartX + (event.getRawX() - pillTouchRawX));
+                    v.setY(pillDragStartY + (event.getRawY() - pillTouchRawY));
+                    return true;
+                case MotionEvent.ACTION_UP:
+                    return true;
+            }
+            return false;
+        });
 
         pendingAudioBaseName = getIntent().getStringExtra(DictateActivity.EXTRA_AUDIO_BASE_NAME);
 
@@ -111,34 +124,7 @@ public class TranscribeFileActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        stopDotAnimation();
         cleanupNative();
-    }
-
-    // ------------------------------------------------------------------
-    // Dot animation — made intentionally strong so it's clearly visible
-    // ------------------------------------------------------------------
-
-    private void startDotAnimation() {
-        animateDot(dot1,   0);
-        animateDot(dot2, 250);
-        animateDot(dot3, 500);
-    }
-
-    private void animateDot(View dot, long startOffset) {
-        if (dot == null) return;
-        AlphaAnimation anim = new AlphaAnimation(0.05f, 1.0f);
-        anim.setDuration(500);
-        anim.setStartOffset(startOffset);
-        anim.setRepeatMode(Animation.REVERSE);
-        anim.setRepeatCount(Animation.INFINITE);
-        dot.startAnimation(anim);
-    }
-
-    private void stopDotAnimation() {
-        if (dot1 != null) dot1.clearAnimation();
-        if (dot2 != null) dot2.clearAnimation();
-        if (dot3 != null) dot3.clearAnimation();
     }
 
     // ------------------------------------------------------------------
@@ -178,12 +164,11 @@ public class TranscribeFileActivity extends Activity {
         runOnUiThread(() -> {
             if (stage > STAGE_LOADING && "Ready".equals(status)) return;
             if (stage == STAGE_DONE || stage == STAGE_ERROR) return;
-            statusText.setText(status);
+            setPillText(status);
             if (status != null && status.startsWith("Error")) {
                 stage = STAGE_ERROR;
-                stopDotAnimation();
-                detailText.setText(status);
-                detailText.setVisibility(View.VISIBLE);
+                pillSpinner.setVisibility(View.GONE);
+                // Keep pill visible for errors — no auto-hide
             }
         });
     }
@@ -191,15 +176,7 @@ public class TranscribeFileActivity extends Activity {
     /** Called by Rust after each 60-second chunk with all text accumulated so far. */
     public void onTextTranscribed(String text) {
         runOnUiThread(() -> {
-            if (!firstChunkReceived) {
-                firstChunkReceived = true;
-                stopDotAnimation();
-                progressArea.setVisibility(View.GONE);
-                resultArea.setVisibility(View.VISIBLE);
-                // Show "still running" indicator
-                processingStatusText.setText("Transkription läuft\u2026");
-                processingStatusText.setVisibility(View.VISIBLE);
-            }
+            setPillText("Transkription läuft\u2026");
             resultText.setText(text);
         });
     }
@@ -214,10 +191,10 @@ public class TranscribeFileActivity extends Activity {
             saveButton .setVisibility(View.VISIBLE);
             shareButton.setVisibility(View.VISIBLE);
 
-            // Briefly show "done" then hide the indicator
-            processingStatusText.setText("Transkription abgeschlossen \u2713");
-            new Handler(Looper.getMainLooper()).postDelayed(
-                    () -> processingStatusText.setVisibility(View.GONE), 3000);
+            // Show "done" in pill, stop spinner, then fade out
+            pillSpinner.setVisibility(View.GONE);
+            setPillText("Transkription abgeschlossen \u2713");
+            new Handler(Looper.getMainLooper()).postDelayed(this::hidePill, 3000);
 
             // Auto-save and rename audio
             final String audioBase = pendingAudioBaseName;
@@ -272,35 +249,27 @@ public class TranscribeFileActivity extends Activity {
         Uri audioUri = getAudioUri();
         if (audioUri == null) {
             stage = STAGE_ERROR;
-            statusText.setText(getString(R.string.error_no_audio));
+            pillSpinner.setVisibility(View.GONE);
+            setPillText(getString(R.string.error_no_audio));
             return;
         }
         stage = STAGE_LOADING;
-        statusText.setText(getString(R.string.status_loading_model));
-        detailText.setText(getString(R.string.status_loading_model_detail));
-        detailText.setVisibility(View.VISIBLE);
+        setPillText(getString(R.string.status_loading_model));
 
         initNative(this);
 
         new Thread(() -> {
             try {
                 stage = STAGE_DECODING;
-                runOnUiThread(() -> {
-                    statusText.setText(getString(R.string.status_decoding));
-                    detailText.setText(getString(R.string.status_decoding_detail));
-                    // Start dots immediately — they'll disappear after the first chunk
-                    startDotAnimation();
-                });
+                runOnUiThread(() -> setPillText(getString(R.string.status_decoding)));
                 decodeAndTranscribeInterleaved(audioUri);
             } catch (Throwable e) {
                 Log.e(TAG, "Error during decode/transcribe", e);
                 stage = STAGE_ERROR;
                 final String msg = e.getMessage() != null ? e.getMessage() : e.getClass().getSimpleName();
                 runOnUiThread(() -> {
-                    statusText.setText(getString(R.string.error_decode) + ": " + msg);
-                    detailText.setText(e.toString());
-                    detailText.setVisibility(View.VISIBLE);
-                    stopDotAnimation();
+                    pillSpinner.setVisibility(View.GONE);
+                    setPillText(getString(R.string.error_decode) + ": " + msg);
                 });
             }
         }).start();
@@ -330,9 +299,8 @@ public class TranscribeFileActivity extends Activity {
             extractor.release();
             stage = STAGE_ERROR;
             runOnUiThread(() -> {
-                statusText.setText(getString(R.string.error_decode_empty));
-                detailText.setText(getString(R.string.error_decode_empty_detail));
-                stopDotAnimation();
+                pillSpinner.setVisibility(View.GONE);
+                setPillText(getString(R.string.error_decode_empty));
             });
             return;
         }
@@ -478,16 +446,34 @@ public class TranscribeFileActivity extends Activity {
         transcribeChunkNative(chunkBuf, chunkLen, true);
     }
 
-    /** Updates status text while a chunk is being transcribed. Runs on UI thread. */
+    /** Updates pill while a chunk is being transcribed. Runs on UI thread. */
     private void updateDecodeProgress(int chunkNum, int totalMinutes) {
-        if (stage < STAGE_TRANSCRIBE) {
-            stage = STAGE_TRANSCRIBE;
-            statusText.setText(getString(R.string.status_transcribing));
-            detailText.setVisibility(View.GONE);
+        if (stage < STAGE_TRANSCRIBE) stage = STAGE_TRANSCRIBE;
+        String msg = (totalMinutes > 0)
+                ? "Minute " + chunkNum + " von " + totalMinutes + "\u2026"
+                : "Transkribiere\u2026";
+        setPillText(msg);
+    }
+
+    // ------------------------------------------------------------------
+    // Floating pill helpers
+    // ------------------------------------------------------------------
+
+    private void setPillText(String text) {
+        if (pillText == null) return;
+        pillText.setText(text);
+        if (pillStatus.getVisibility() != View.VISIBLE) {
+            pillStatus.setAlpha(0f);
+            pillStatus.setVisibility(View.VISIBLE);
+            pillStatus.animate().alpha(1f).setDuration(200).start();
         }
-        if (totalMinutes > 0) {
-            statusText.setText("Transkribiere\u2026 Minute " + chunkNum + " von " + totalMinutes);
-        }
+    }
+
+    private void hidePill() {
+        if (pillStatus == null) return;
+        pillStatus.animate().alpha(0f).setDuration(300)
+                .withEndAction(() -> pillStatus.setVisibility(View.GONE))
+                .start();
     }
 
     // ------------------------------------------------------------------
