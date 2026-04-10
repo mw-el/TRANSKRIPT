@@ -119,6 +119,36 @@
             android:textSize="13sp"
             android:visibility="gone"/>
 
+        <!-- Lock section: shown during recording to protect against accidental touches -->
+        <LinearLayout
+            android:id="@+id/lock_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:layout_marginTop="@dimen/space_5"
+            android:visibility="gone">
+
+            <ImageButton
+                android:id="@+id/btn_screen_lock"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:src="@drawable/ic_lock_open"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:padding="12dp"
+                android:contentDescription="Bildschirm sperren"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Aufnahme sichern"
+                android:textColor="@color/cl_ink_soft"
+                android:fontFamily="@font/inter_regular"
+                android:textSize="12sp"
+                android:layout_marginTop="@dimen/space_1"/>
+
+        </LinearLayout>
+
         <!-- Spacer bottom -->
         <View
             android:layout_width="match_parent"

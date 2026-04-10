@@ -38,8 +38,9 @@
                 android:padding="10dp"/>
         </LinearLayout>
 
+        <!-- Unified setup card: shown until all 3 steps are complete -->
         <LinearLayout
-            android:id="@+id/card_permissions"
+            android:id="@+id/card_setup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -51,38 +52,190 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/perm_mic_title"
+                android:text="App einrichten"
                 android:textSize="16sp"
                 android:fontFamily="@font/poppins_semibold"
                 android:textStyle="bold"
-                android:textColor="@color/cl_red"
-                android:layout_marginBottom="@dimen/space_2"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/perm_mic_desc"
-                android:fontFamily="@font/inter_regular"
-                android:textColor="@color/cl_ink_soft"
-                android:textSize="14sp"
+                android:textColor="@color/cl_ink"
                 android:layout_marginBottom="@dimen/space_4"/>
 
-            <Button
-                android:id="@+id/btn_grant_perms"
+            <!-- Step 1: Microphone -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/btn_grant"
-                style="@style/ButtonStyle"
-                android:backgroundTint="@color/cl_red"/>
-        </LinearLayout>
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="@dimen/space_3">
 
-        <Button
-            android:id="@+id/btn_ime_settings"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="1. Tastatureinstellungen öffnen"
-            style="@style/SecondaryButtonStyle"
-            android:layout_marginBottom="@dimen/space_4"/>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mikrofon"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:textStyle="bold"
+                        android:textColor="@color/cl_ink"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Zum Aufnehmen von Sprache"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_regular"
+                        android:textColor="@color/cl_ink_soft"/>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btn_mic_grant"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="Freigeben"
+                    android:textSize="13sp"
+                    android:textColor="@color/white"
+                    android:paddingStart="@dimen/space_4"
+                    android:paddingEnd="@dimen/space_4"
+                    android:background="@drawable/bg_button_primary"
+                    android:backgroundTint="@color/cl_accent2"
+                    android:stateListAnimator="@null"
+                    />
+
+                <TextView
+                    android:id="@+id/txt_mic_done"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✓"
+                    android:textSize="20sp"
+                    android:textColor="@color/cl_green"
+                    android:textStyle="bold"
+                    android:visibility="gone"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/cl_border"
+                android:layout_marginBottom="@dimen/space_3"/>
+
+            <!-- Step 2: Keyboard -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="@dimen/space_3">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Tastatur"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:textStyle="bold"
+                        android:textColor="@color/cl_ink"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Als alternative Eingabemethode"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_regular"
+                        android:textColor="@color/cl_ink_soft"/>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btn_ime_setup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="Einrichten"
+                    android:textSize="13sp"
+                    android:textColor="@color/white"
+                    android:paddingStart="@dimen/space_4"
+                    android:paddingEnd="@dimen/space_4"
+                    android:background="@drawable/bg_button_primary"
+                    android:backgroundTint="@color/cl_accent2"
+                    android:stateListAnimator="@null"
+                    />
+
+                <TextView
+                    android:id="@+id/txt_ime_done"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✓"
+                    android:textSize="20sp"
+                    android:textColor="@color/cl_green"
+                    android:textStyle="bold"
+                    android:visibility="gone"/>
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/cl_border"
+                android:layout_marginBottom="@dimen/space_3"/>
+
+            <!-- Step 3: Storage folder -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Speicherort"
+                        android:textSize="14sp"
+                        android:fontFamily="@font/poppins_semibold"
+                        android:textStyle="bold"
+                        android:textColor="@color/cl_ink"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="z.B. Dokumente → Transkript"
+                        android:textSize="12sp"
+                        android:fontFamily="@font/inter_regular"
+                        android:textColor="@color/cl_ink_soft"/>
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/btn_folder_setup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="36dp"
+                    android:text="Wählen"
+                    android:textSize="13sp"
+                    android:textColor="@color/white"
+                    android:paddingStart="@dimen/space_4"
+                    android:paddingEnd="@dimen/space_4"
+                    android:background="@drawable/bg_button_primary"
+                    android:backgroundTint="@color/cl_accent2"
+                    android:stateListAnimator="@null"
+                    />
+
+                <TextView
+                    android:id="@+id/txt_folder_done"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✓"
+                    android:textSize="20sp"
+                    android:textColor="@color/cl_green"
+                    android:textStyle="bold"
+                    android:visibility="gone"/>
+            </LinearLayout>
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"

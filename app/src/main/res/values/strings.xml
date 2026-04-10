@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">TRANSKRIPT</string>
+    <string name="app_name">Transkr!pt</string>
     <string name="welcome_title">TRANSKR!PT</string>
     <string name="welcome_subtitle">Vollständig offline. Privat. Schnell.</string>
 
@@ -58,6 +58,7 @@
     <string name="settings_folder_saved">Speicherort geändert</string>
     <string name="settings_folder_reset">Speicherort auf Standard zurückgesetzt</string>
     <string name="settings_folder_hint">Transkripte (.txt) und Aufnahmen (.ogg) werden hier mit gleichem Basisnamen gespeichert.</string>
+    <string name="settings_folder_default_hint">Standard: Dokumente/TRANSKRIPT – wird beim ersten Start automatisch angelegt. Über „Ordner wählen" kann ein anderer Speicherort festgelegt werden.</string>
     <string name="settings_section_email">E-Mail</string>
     <string name="settings_email_label">Standard-Empfänger</string>
     <string name="settings_email_hint">name@beispiel.ch</string>

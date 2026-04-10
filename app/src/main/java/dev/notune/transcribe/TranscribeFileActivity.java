@@ -13,6 +13,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -42,10 +43,10 @@ public class TranscribeFileActivity extends Activity {
     private View       dot1, dot2, dot3;
     private View       progressArea;
     private ScrollView resultArea;
-    private TextView   resultText;
+    private EditText    resultText;
     private TextView   savedPathText;
     private ImageButton copyButton;
-    private ImageButton openButton;
+    private ImageButton saveButton;
     private ImageButton shareButton;
 
     /** True once the first text chunk has arrived and dots have been hidden. */
@@ -70,13 +71,13 @@ public class TranscribeFileActivity extends Activity {
         resultText    = findViewById(R.id.txt_result);
         savedPathText = findViewById(R.id.txt_saved_path);
         copyButton    = findViewById(R.id.btn_copy);
-        openButton    = findViewById(R.id.btn_open);
+        saveButton    = findViewById(R.id.btn_save);
         shareButton   = findViewById(R.id.btn_share);
 
         pendingAudioBaseName = getIntent().getStringExtra(DictateActivity.EXTRA_AUDIO_BASE_NAME);
 
         findViewById(R.id.btn_close).setOnClickListener(v -> finish());
-        openButton.setOnClickListener(v -> openSavedFile());
+        saveButton.setOnClickListener(v -> saveTranscript());
 
         copyButton.setOnClickListener(v -> {
             String text = resultText.getText().toString();
@@ -148,7 +149,7 @@ public class TranscribeFileActivity extends Activity {
                     savedPathText.setText(
                             getString(R.string.transcript_saved_at, r.displayName, r.location));
                     savedPathText.setVisibility(View.VISIBLE);
-                    openButton.setVisibility(View.VISIBLE);
+                    saveButton.setVisibility(View.VISIBLE);
                     Toast.makeText(this,
                             getString(R.string.transcript_saved, r.displayName),
                             Toast.LENGTH_LONG).show();
@@ -159,23 +160,6 @@ public class TranscribeFileActivity extends Activity {
                 }
             });
         }).start();
-    }
-
-    private void openSavedFile() {
-        if (savedUri == null) {
-            Toast.makeText(this, getString(R.string.transcript_no_saved), Toast.LENGTH_SHORT).show();
-            return;
-        }
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setDataAndType(savedUri, "text/plain");
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
-        try {
-            startActivity(Intent.createChooser(intent, getString(R.string.transcript_open_with)));
-        } catch (Exception e) {
-            Toast.makeText(this,
-                    getString(R.string.transcript_open_error) + ": " + e.getMessage(),
-                    Toast.LENGTH_LONG).show();
-        }
     }
 
     // ------------------------------------------------------------------
@@ -223,11 +207,8 @@ public class TranscribeFileActivity extends Activity {
             String text = resultText.getText().toString();
 
             copyButton .setVisibility(View.VISIBLE);
+            saveButton .setVisibility(View.VISIBLE);
             shareButton.setVisibility(View.VISIBLE);
-
-            // Auto-copy
-            ClipboardManager cb = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-            cb.setPrimaryClip(ClipData.newPlainText("Transcription", text));
 
             // Auto-save and optionally rename the source audio file
             final String audioBase = pendingAudioBaseName;
@@ -245,7 +226,7 @@ public class TranscribeFileActivity extends Activity {
                                 getString(R.string.transcript_saved_at,
                                         r.displayName, r.location));
                         savedPathText.setVisibility(View.VISIBLE);
-                        openButton.setVisibility(View.VISIBLE);
+                        saveButton.setVisibility(View.VISIBLE);
                     } else {
                         savedPathText.setText(
                                 getString(R.string.transcript_save_error) + ": " + r.errorMessage);
@@ -362,6 +343,10 @@ public class TranscribeFileActivity extends Activity {
                 inputFormat.getString(MediaFormat.KEY_MIME));
         codec.configure(inputFormat, null, null, 0);
         codec.start();
+
+        // Prepend 500 ms of silence to avoid decoder warm-up artefacts at the beginning
+        float[] silence = new float[8_000]; // 0.5 s × 16 000 Hz, already zero-initialised
+        appendAudioSamples(silence, 8_000);
 
         final double ratio = (double) sampleRate / TARGET_SAMPLE_RATE;
         double nextOutSrcPos = 0.0;

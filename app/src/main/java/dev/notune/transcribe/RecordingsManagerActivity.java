@@ -80,9 +80,11 @@ public class RecordingsManagerActivity extends Activity {
         RecordingGroup(String baseName) { this.baseName = baseName; }
     }
 
+    private static final String PREFS_LOCKS = "file_locks";
+
     private LinearLayout listContainer;
     private MediaPlayer   mediaPlayer;
-    private Button        activePlayButton;
+    private ImageButton   activePlayButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,6 +125,8 @@ public class RecordingsManagerActivity extends Activity {
         for (RecordingGroup group : sorted) {
             listContainer.addView(buildGroupCard(group));
         }
+
+        listContainer.addView(buildBulkDeleteSection(sorted));
     }
 
     private List<RecordingEntry> collectEntries() {
@@ -227,32 +231,25 @@ public class RecordingsManagerActivity extends Activity {
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
 
-        // Badge
         row.addView(makeBadge("Audio"));
 
-        // Play button
-        Button playBtn = makeSmallButton(getString(R.string.recordings_play));
+        ImageButton playBtn = makeRowIconButton(R.drawable.ic_play, getColor(R.color.cl_ink), dp(4));
         playBtn.setOnClickListener(v -> togglePlayback(entry, playBtn));
-        activePlayButton = null;
         row.addView(playBtn);
 
-        // Spacer
         View spacer = new View(this);
-        spacer.setLayoutParams(new LinearLayout.LayoutParams(0,
-                LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        spacer.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         row.addView(spacer);
 
-        // Rename
-        Button renameBtn = makeSmallButton(getString(R.string.recordings_rename));
+        ImageButton renameBtn = makeRowIconButton(R.drawable.ic_rename, getColor(R.color.cl_ink_soft), dp(4));
         renameBtn.setOnClickListener(v -> showRenameDialog(group));
         row.addView(renameBtn);
 
-        // Delete
-        Button deleteBtn = makeSmallButton(getString(R.string.recordings_delete));
-        deleteBtn.setTextColor(getColor(R.color.cl_red));
+        ImageButton deleteBtn = makeRowIconButton(R.drawable.ic_delete, getColor(R.color.cl_red), dp(4));
         deleteBtn.setOnClickListener(v -> showDeleteDialog(entry, group));
         row.addView(deleteBtn);
 
+        row.addView(makeLockButton(group));
         return row;
     }
 
@@ -263,42 +260,135 @@ public class RecordingsManagerActivity extends Activity {
 
         row.addView(makeBadge("Text"));
 
-        // Edit button
-        Button editBtn = makeSmallButton(getString(R.string.recordings_edit));
-        editBtn.setOnClickListener(v -> showEditDialog(entry));
+        ImageButton editBtn = makeRowIconButton(R.drawable.ic_rename, getColor(R.color.cl_ink), dp(4));
+        editBtn.setOnClickListener(v -> showEditDialog(entry, group));
         row.addView(editBtn);
 
         View spacer = new View(this);
-        spacer.setLayoutParams(new LinearLayout.LayoutParams(0,
-                LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
+        spacer.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
         row.addView(spacer);
 
-        Button renameBtn = makeSmallButton(getString(R.string.recordings_rename));
+        ImageButton renameBtn = makeRowIconButton(R.drawable.ic_rename, getColor(R.color.cl_ink_soft), dp(4));
         renameBtn.setOnClickListener(v -> showRenameDialog(group));
         row.addView(renameBtn);
 
-        Button deleteBtn = makeSmallButton(getString(R.string.recordings_delete));
-        deleteBtn.setTextColor(getColor(R.color.cl_red));
+        ImageButton deleteBtn = makeRowIconButton(R.drawable.ic_delete, getColor(R.color.cl_red), dp(4));
         deleteBtn.setOnClickListener(v -> showDeleteDialog(entry, group));
         row.addView(deleteBtn);
 
+        row.addView(makeLockButton(group));
         return row;
+    }
+
+    private ImageButton makeLockButton(RecordingGroup group) {
+        boolean locked = isProtected(group.baseName);
+        ImageButton btn = makeRowIconButton(
+                locked ? R.drawable.ic_lock : R.drawable.ic_lock_open,
+                locked ? getColor(R.color.cl_accent) : getColor(R.color.cl_ink_soft),
+                0);
+        btn.setOnClickListener(v -> {
+            boolean nowLocked = !isProtected(group.baseName);
+            setProtected(group.baseName, nowLocked);
+            btn.setImageDrawable(getDrawable(nowLocked ? R.drawable.ic_lock : R.drawable.ic_lock_open));
+            btn.setColorFilter(nowLocked ? getColor(R.color.cl_accent) : getColor(R.color.cl_ink_soft));
+        });
+        return btn;
+    }
+
+    private View buildBulkDeleteSection(List<RecordingGroup> groups) {
+        LinearLayout section = new LinearLayout(this);
+        section.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        p.setMargins(0, dp(16), 0, 0);
+        section.setLayoutParams(p);
+
+        Button btnAudio = new Button(this);
+        btnAudio.setText("Alle Audio löschen");
+        btnAudio.setAllCaps(false);
+        btnAudio.setStateListAnimator(null);
+        btnAudio.setBackground(getDrawable(R.drawable.bg_button_primary));
+        btnAudio.setBackgroundTintList(getColorStateList(R.color.cl_red));
+        btnAudio.setTextColor(getColor(R.color.white));
+        LinearLayout.LayoutParams btnP = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        btnP.setMargins(0, 0, 0, dp(8));
+        btnAudio.setLayoutParams(btnP);
+        btnAudio.setOnClickListener(v -> confirmBulkDelete(groups, false));
+        section.addView(btnAudio);
+
+        Button btnAll = new Button(this);
+        btnAll.setText("Alle löschen");
+        btnAll.setAllCaps(false);
+        btnAll.setStateListAnimator(null);
+        btnAll.setBackground(getDrawable(R.drawable.bg_button_primary));
+        btnAll.setBackgroundTintList(getColorStateList(R.color.cl_red));
+        btnAll.setTextColor(getColor(R.color.white));
+        LinearLayout.LayoutParams btnAllP = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        btnAllP.setMargins(0, 0, 0, dp(8));
+        btnAll.setLayoutParams(btnAllP);
+        btnAll.setOnClickListener(v -> confirmBulkDelete(groups, true));
+        section.addView(btnAll);
+
+        TextView hint = new TextView(this);
+        hint.setText("Geschützte Dateien sind vom Löschen ausgenommen.");
+        hint.setTextSize(12);
+        hint.setTextColor(getColor(R.color.cl_ink_soft));
+        hint.setLayoutParams(new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        section.addView(hint);
+
+        return section;
+    }
+
+    private void confirmBulkDelete(List<RecordingGroup> groups, boolean includeText) {
+        String msg = includeText
+                ? "Alle nicht geschützten Audio- und Textdateien löschen?"
+                : "Alle nicht geschützten Audiodateien löschen?";
+        new AlertDialog.Builder(this, R.style.AppDialogTheme)
+                .setTitle(includeText ? "Alle löschen" : "Alle Audio löschen")
+                .setMessage(msg)
+                .setPositiveButton("Löschen", (d, w) -> doBulkDelete(groups, includeText))
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void doBulkDelete(List<RecordingGroup> groups, boolean includeText) {
+        new Thread(() -> {
+            for (RecordingGroup group : groups) {
+                if (isProtected(group.baseName)) continue;
+                if (group.audio != null) deleteEntryFile(group.audio);
+                if (includeText && group.text != null) deleteEntryFile(group.text);
+            }
+            runOnUiThread(() -> { toast("Gelöscht"); loadRecordings(); });
+        }).start();
+    }
+
+    private boolean isProtected(String baseName) {
+        return getSharedPreferences(PREFS_LOCKS, MODE_PRIVATE).getBoolean(baseName, false);
+    }
+
+    private void setProtected(String baseName, boolean protect) {
+        getSharedPreferences(PREFS_LOCKS, MODE_PRIVATE)
+                .edit().putBoolean(baseName, protect).apply();
     }
 
     // ------------------------------------------------------------------
     // Playback
     // ------------------------------------------------------------------
 
-    private void togglePlayback(RecordingEntry entry, Button btn) {
-        // If something else is playing, stop it first
+    private void togglePlayback(RecordingEntry entry, ImageButton btn) {
         if (activePlayButton != null && activePlayButton != btn) {
             stopPlayback();
-            activePlayButton.setText(getString(R.string.recordings_play));
+            activePlayButton.setImageDrawable(getDrawable(R.drawable.ic_play));
+            activePlayButton.setColorFilter(getColor(R.color.cl_ink));
         }
 
         if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             stopPlayback();
-            btn.setText(getString(R.string.recordings_play));
+            btn.setImageDrawable(getDrawable(R.drawable.ic_play));
+            btn.setColorFilter(getColor(R.color.cl_ink));
             activePlayButton = null;
         } else {
             Uri playUri = resolveUri(entry);
@@ -308,10 +398,12 @@ public class RecordingsManagerActivity extends Activity {
                 mediaPlayer.setDataSource(this, playUri);
                 mediaPlayer.prepare();
                 mediaPlayer.start();
-                btn.setText(getString(R.string.recordings_pause));
+                btn.setImageDrawable(getDrawable(R.drawable.ic_pause));
+                btn.setColorFilter(getColor(R.color.cl_accent));
                 activePlayButton = btn;
                 mediaPlayer.setOnCompletionListener(mp -> {
-                    btn.setText(getString(R.string.recordings_play));
+                    btn.setImageDrawable(getDrawable(R.drawable.ic_play));
+                    btn.setColorFilter(getColor(R.color.cl_ink));
                     activePlayButton = null;
                     stopPlayback();
                 });
@@ -335,7 +427,7 @@ public class RecordingsManagerActivity extends Activity {
     // Edit text (with copy / save / open / share action buttons)
     // ------------------------------------------------------------------
 
-    private void showEditDialog(RecordingEntry entry) {
+    private void showEditDialog(RecordingEntry entry, RecordingGroup group) {
         String content = readText(entry);
 
         // Root container
@@ -370,6 +462,9 @@ public class RecordingsManagerActivity extends Activity {
 
         root.addView(header);
 
+        AlertDialog[] dialog = {null};
+        btnX.setOnClickListener(v -> { if (dialog[0] != null) dialog[0].dismiss(); });
+
         // Editable text field
         EditText editText = new EditText(this);
         editText.setText(content);
@@ -397,11 +492,11 @@ public class RecordingsManagerActivity extends Activity {
         });
         btnRow.addView(btnCopy);
 
-        ImageButton btnSave = makeIconButton(R.drawable.ic_save, R.color.cl_green, dp(12));
+        ImageButton btnSave = makeIconButton(R.drawable.ic_save, R.color.cl_accent2, dp(12));
         btnSave.setOnClickListener(v -> saveText(entry, editText.getText().toString()));
         btnRow.addView(btnSave);
 
-        ImageButton btnShare = makeIconButton(R.drawable.ic_share, R.color.cl_green, 0);
+        ImageButton btnShare = makeIconButton(R.drawable.ic_share, R.color.cl_green, dp(12));
         btnShare.setOnClickListener(v -> {
             Uri fileUri = resolveUri(entry);
             if (fileUri == null) { toast("Datei nicht gefunden"); return; }
@@ -414,12 +509,23 @@ public class RecordingsManagerActivity extends Activity {
         });
         btnRow.addView(btnShare);
 
-        AlertDialog dialog = new AlertDialog.Builder(this, R.style.AppDialogTheme)
+        ImageButton btnDelete = makeIconButton(R.drawable.ic_delete, R.color.cl_red, 0);
+        btnDelete.setOnClickListener(v -> new AlertDialog.Builder(this, R.style.AppDialogTheme)
+                .setTitle(getString(R.string.recordings_confirm_delete))
+                .setMessage(entry.baseName + ".txt")
+                .setPositiveButton(getString(R.string.recordings_delete), (d2, w) -> {
+                    doDelete(entry);
+                    dialog[0].dismiss();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show());
+        btnRow.addView(btnDelete);
+
+        dialog[0] = new AlertDialog.Builder(this, R.style.AppDialogTheme)
                 .setView(root)
                 .create();
 
-        btnX.setOnClickListener(v -> dialog.dismiss());
-        dialog.show();
+        dialog[0].show();
     }
 
     private String readText(RecordingEntry entry) {
@@ -533,17 +639,19 @@ public class RecordingsManagerActivity extends Activity {
 
     private void doDelete(RecordingEntry entry) {
         new Thread(() -> {
-            boolean ok;
-            try {
-                if (entry.internalFile != null) ok = entry.internalFile.delete();
-                else ok = entry.safFile.delete();
-            } catch (Exception e) { Log.e(TAG, "delete", e); ok = false; }
-            final boolean success = ok;
+            boolean ok = deleteEntryFile(entry);
             runOnUiThread(() -> {
-                toast(success ? "Gelöscht" : "Löschen fehlgeschlagen");
+                toast(ok ? "Gelöscht" : "Löschen fehlgeschlagen");
                 loadRecordings();
             });
         }).start();
+    }
+
+    private boolean deleteEntryFile(RecordingEntry entry) {
+        try {
+            if (entry.internalFile != null) return entry.internalFile.delete();
+            else return entry.safFile.delete();
+        } catch (Exception e) { Log.e(TAG, "delete", e); return false; }
     }
 
     // ------------------------------------------------------------------
@@ -592,21 +700,18 @@ public class RecordingsManagerActivity extends Activity {
         return tv;
     }
 
-    private Button makeSmallButton(String text) {
-        Button btn = new Button(this);
-        btn.setText(text);
-        btn.setTextSize(12);
-        btn.setTextColor(getColor(R.color.cl_ink));
-        btn.setBackground(getDrawable(R.drawable.bg_button_secondary));
-        btn.setAllCaps(false);
-        btn.setStateListAnimator(null);
-        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        p.setMargins(0, 0, dp(6), 0);
+    private ImageButton makeRowIconButton(int iconRes, int color, int marginEnd) {
+        ImageButton btn = new ImageButton(this);
+        btn.setImageDrawable(getDrawable(iconRes));
+        btn.setColorFilter(color);
+        int[] attrs = {android.R.attr.selectableItemBackgroundBorderless};
+        android.content.res.TypedArray ta = obtainStyledAttributes(attrs);
+        btn.setBackground(ta.getDrawable(0));
+        ta.recycle();
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(dp(36), dp(36));
+        p.setMargins(0, 0, marginEnd, 0);
         btn.setLayoutParams(p);
-        btn.setPadding(dp(10), dp(4), dp(10), dp(4));
-        btn.setMinHeight(0);
-        btn.setMinimumHeight(0);
+        btn.setPadding(dp(6), dp(6), dp(6), dp(6));
         return btn;
     }
 
@@ -614,6 +719,7 @@ public class RecordingsManagerActivity extends Activity {
     private ImageButton makeIconButton(int iconRes, int colorRes, int marginEnd) {
         ImageButton btn = new ImageButton(this);
         btn.setImageDrawable(getDrawable(iconRes));
+        btn.setColorFilter(getColor(R.color.white));
         btn.setBackground(getDrawable(R.drawable.bg_button_primary));
         btn.setBackgroundTintList(getColorStateList(colorRes));
         btn.setPadding(dp(14), dp(14), dp(14), dp(14));

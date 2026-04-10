@@ -48,7 +48,7 @@ public class SettingsActivity extends Activity {
         Button chooseFolderButton = findViewById(R.id.btn_choose_folder);
         Button resetFolderButton  = findViewById(R.id.btn_reset_folder);
         Button saveEmailButton    = findViewById(R.id.btn_save_email);
-        Button closeButton        = findViewById(R.id.btn_settings_close);
+        android.widget.ImageButton closeButton = findViewById(R.id.btn_settings_close);
 
         refreshFolderDisplay();
         loadEmailSetting();

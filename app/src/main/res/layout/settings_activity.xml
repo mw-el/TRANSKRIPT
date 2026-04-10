@@ -30,12 +30,15 @@
                 android:textStyle="bold"
                 android:textColor="@color/cl_ink"/>
 
-            <Button
+            <ImageButton
                 android:id="@+id/btn_settings_close"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/btn_close"
-                style="@style/SecondaryButtonStyle"/>
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:tint="@color/cl_ink_soft"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/btn_close"
+                android:padding="10dp"/>
         </LinearLayout>
 
         <!-- Section: Aufnahme -->
@@ -222,6 +225,15 @@
                 android:layout_height="wrap_content"
                 android:text="@string/settings_folder_hint"
                 android:textColor="@color/cl_ink_soft"
+                android:fontFamily="@font/inter_regular"
+                android:textSize="13sp"
+                android:layout_marginBottom="@dimen/space_2"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_folder_default_hint"
+                android:textColor="@color/cl_accent"
                 android:fontFamily="@font/inter_regular"
                 android:textSize="13sp"
                 android:layout_marginBottom="@dimen/space_4"/>

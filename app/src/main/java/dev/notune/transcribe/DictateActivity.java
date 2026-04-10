@@ -9,6 +9,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -56,6 +57,10 @@ public class DictateActivity extends Activity {
     };
 
     private ImageButton  btnRecord;
+    private ImageButton  btnClose;
+    private ImageButton  btnLock;
+    private View         lockSection;
+    private boolean      screenLocked = false;
     private TextView     tvStatus;
     private TextView     tvTimer;
     private TextView     tvHint;
@@ -67,12 +72,16 @@ public class DictateActivity extends Activity {
         setContentView(R.layout.dictate_activity);
 
         btnRecord    = findViewById(R.id.btn_record);
+        btnClose     = findViewById(R.id.btn_close);
+        btnLock      = findViewById(R.id.btn_screen_lock);
+        lockSection  = findViewById(R.id.lock_section);
         tvStatus     = findViewById(R.id.tv_status);
         tvTimer      = findViewById(R.id.tv_timer);
         tvHint       = findViewById(R.id.tv_hint);
         waveformView = findViewById(R.id.waveform_view);
 
-        findViewById(R.id.btn_close).setOnClickListener(v -> finish());
+        btnClose.setOnClickListener(v -> finish());
+        btnLock.setOnClickListener(v -> toggleScreenLock());
 
         btnRecord.setOnClickListener(v -> {
             if (isRecording) stopAndTranscribe();
@@ -116,8 +125,9 @@ public class DictateActivity extends Activity {
         tvTimer.setText("00:00");
         tvHint.setVisibility(View.VISIBLE);
 
-        // Show waveform and start animation + level polling
+        // Show waveform, lock button, and start animation + level polling
         waveformView.setVisibility(View.VISIBLE);
+        lockSection.setVisibility(View.VISIBLE);
         timerHandler.post(timerRunnable);
         levelHandler.postDelayed(levelRunnable, 80);
     }
@@ -130,8 +140,15 @@ public class DictateActivity extends Activity {
         try { recorder.stop(); } catch (Exception e) { Log.w(TAG, "stop: " + e.getMessage()); }
         releaseRecorder();
 
-        // Reset UI
+        // Reset UI (also release lock if active)
+        if (screenLocked) {
+            screenLocked = false;
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            btnRecord.setEnabled(true);
+            btnClose.setEnabled(true);
+        }
         waveformView.setVisibility(View.INVISIBLE);
+        lockSection.setVisibility(View.GONE);
         btnRecord.setBackground(getDrawable(R.drawable.bg_round_button));
         btnRecord.setImageResource(R.drawable.ic_mic);
         tvHint.setVisibility(View.GONE);
@@ -161,6 +178,23 @@ public class DictateActivity extends Activity {
         finish();
     }
 
+    private void toggleScreenLock() {
+        screenLocked = !screenLocked;
+        if (screenLocked) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            btnRecord.setEnabled(false);
+            btnClose.setEnabled(false);
+            btnLock.setImageDrawable(getDrawable(R.drawable.ic_lock));
+            btnLock.setColorFilter(getColor(R.color.cl_accent));
+        } else {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            btnRecord.setEnabled(true);
+            btnClose.setEnabled(true);
+            btnLock.setImageDrawable(getDrawable(R.drawable.ic_lock_open));
+            btnLock.clearColorFilter();
+        }
+    }
+
     private void releaseRecorder() {
         if (recorder != null) { recorder.release(); recorder = null; }
     }
@@ -172,5 +206,6 @@ public class DictateActivity extends Activity {
         levelHandler.removeCallbacks(levelRunnable);
         if (isRecording) try { recorder.stop(); } catch (Exception ignored) {}
         releaseRecorder();
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 }
