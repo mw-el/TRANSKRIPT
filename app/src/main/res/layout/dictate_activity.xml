@@ -139,12 +139,14 @@
                 android:contentDescription="Bildschirm sperren"/>
 
             <TextView
+                android:id="@+id/tv_lock_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Aufnahme sichern"
+                android:text="Touch sperren – Aufnahme schützen"
                 android:textColor="@color/cl_ink_soft"
                 android:fontFamily="@font/inter_regular"
                 android:textSize="12sp"
+                android:gravity="center"
                 android:layout_marginTop="@dimen/space_1"/>
 
         </LinearLayout>

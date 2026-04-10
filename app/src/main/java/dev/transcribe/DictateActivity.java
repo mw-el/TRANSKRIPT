@@ -60,6 +60,7 @@ public class DictateActivity extends Activity {
     private ImageButton  btnRecord;
     private ImageButton  btnClose;
     private ImageButton  btnLock;
+    private TextView     tvLockLabel;
     private View         lockSection;
     private boolean      screenLocked = false;
     private TextView     tvStatus;
@@ -75,6 +76,7 @@ public class DictateActivity extends Activity {
         btnRecord    = findViewById(R.id.btn_record);
         btnClose     = findViewById(R.id.btn_close);
         btnLock      = findViewById(R.id.btn_screen_lock);
+        tvLockLabel  = findViewById(R.id.tv_lock_label);
         lockSection  = findViewById(R.id.lock_section);
         tvStatus     = findViewById(R.id.tv_status);
         tvTimer      = findViewById(R.id.tv_timer);
@@ -192,12 +194,14 @@ public class DictateActivity extends Activity {
             btnClose.setEnabled(false);
             btnLock.setImageDrawable(getDrawable(R.drawable.ic_lock));
             btnLock.setColorFilter(getColor(R.color.cl_accent));
+            tvLockLabel.setText("Auf das Schloss tippen, um die Touchfunktion zu reaktivieren");
         } else {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             btnRecord.setEnabled(true);
             btnClose.setEnabled(true);
             btnLock.setImageDrawable(getDrawable(R.drawable.ic_lock_open));
             btnLock.clearColorFilter();
+            tvLockLabel.setText("Touch sperren \u2013 Aufnahme schützen");
         }
     }
 
