@@ -8,8 +8,6 @@ import android.media.AudioFocusRequest;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
-import android.media.MediaPlayer;
-import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -35,6 +33,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import android.media.MediaRecorder;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -47,22 +46,14 @@ import java.util.Locale;
  * Flow:
  *  1. Kontinuierliches STT via AudioRecord (Mikrofon) + Parakeet JNI.
  *  2. Wenn Codewort (default "over") erkannt → Text an LLM senden.
- *  3. Antwort via DeepInfra TTS (Kokoro) als MP3 abspielen.
+ *  3. Antwort via SherpaOnnxTts (Thorsten-Medium, lokal/offline) abspielen.
  *  4. Transkript als Markdown-Datei im konfigurierten Speicherordner ablegen.
- *
- * Settings keys (in SettingsActivity.PREFS_NAME):
- *   KEY_CHAT_API_KEY    — DeepInfra API Key
- *   KEY_CHAT_MODEL      — LLM-Modell
- *   KEY_CHAT_TTS_VOICE  — Kokoro-Stimme
- *   KEY_CHAT_ENDWORD    — Codewort (default: over)
- *   KEY_CHAT_SYSPROMPT  — System Prompt
  */
 public class ChatActivity extends Activity {
 
-    private static final String TAG = "ChatActivity";
+    private static final String TAG       = "ChatActivity";
     private static final String AUTHORITY = "dev.transcribe.fileprovider";
 
-    // Native libs — gleich wie LiveSubtitleService
     static {
         try {
             System.loadLibrary("c++_shared");
@@ -75,12 +66,10 @@ public class ChatActivity extends Activity {
 
     public static final String KEY_CHAT_API_KEY   = "chat_api_key";
     public static final String KEY_CHAT_MODEL     = "chat_model";
-    public static final String KEY_CHAT_TTS_VOICE = "chat_tts_voice";
     public static final String KEY_CHAT_ENDWORD   = "chat_endword";
     public static final String KEY_CHAT_SYSPROMPT = "chat_sysprompt";
 
     public static final String DEFAULT_MODEL     = "Qwen/Qwen3-235B-A22B-Instruct";
-    public static final String DEFAULT_TTS_VOICE = "af_sarah";
     public static final String DEFAULT_ENDWORD   = "over";
     public static final String DEFAULT_SYSPROMPT =
         "Du bist ein pr\u00e4ziser Diskussionspartner. Antworte konzise auf Deutsch. "
@@ -88,8 +77,6 @@ public class ChatActivity extends Activity {
 
     private static final String DEEPINFRA_CHAT_URL =
         "https://api.deepinfra.com/v1/openai/chat/completions";
-    private static final String DEEPINFRA_TTS_URL =
-        "https://api.deepinfra.com/v1/inference/kokoro";
 
     // UI
     private TextView    tvTranscript;
@@ -103,6 +90,9 @@ public class ChatActivity extends Activity {
     private boolean     isListening  = false;
     private boolean     isProcessing = false;
 
+    // TTS — Sherpa-ONNX Thorsten-Medium (offline)
+    private SherpaOnnxTts tts;
+
     // Conversation
     private final StringBuilder    currentBuffer = new StringBuilder();
     private final List<JSONObject> history       = new ArrayList<>();
@@ -111,16 +101,15 @@ public class ChatActivity extends Activity {
     private String                 activeModel;
     private final Handler          mainHandler   = new Handler(Looper.getMainLooper());
 
-    // Audio playback
+    // Audio focus
     private AudioManager      audioManager;
     private AudioFocusRequest audioFocusRequest;
-    private MediaPlayer       mediaPlayer;
 
     // Endword
     private String   endword;
     private Runnable endwordTimeoutRunnable;
 
-    // JNI — analog zu LiveSubtitleService
+    // JNI — Parakeet STT
     private native void initNative(ChatActivity activity);
     private native void cleanupNative();
     private native void pushAudio(float[] data, int length);
@@ -157,8 +146,20 @@ public class ChatActivity extends Activity {
         markdownLog.append("**Modell:** ").append(activeModel).append("  \n");
         markdownLog.append("**System:** ").append(sysPrompt).append("\n\n---\n\n");
 
-        // Parakeet JNI initialisieren
+        // Parakeet STT JNI
         initNative(this);
+
+        // Sherpa-ONNX TTS — initialise (download if needed)
+        tts = new SherpaOnnxTts(this, msg -> setStatus(msg));
+        tts.ensureModelReady(() -> {
+            // Model ready — mic button becomes active
+            btnMic.setEnabled(true);
+            setStatus("Mikrofon-Taste dr\u00fccken zum Starten");
+        });
+
+        // Disable mic until TTS model is ready
+        btnMic.setEnabled(false);
+        setStatus("Sprachmodell wird vorbereitet\u2026");
 
         findViewById(R.id.btn_chat_close).setOnClickListener(v -> finish());
         findViewById(R.id.btn_chat_share).setOnClickListener(v -> shareTranscript());
@@ -169,8 +170,6 @@ public class ChatActivity extends Activity {
             if (isListening) stopListening();
             else             startListening();
         });
-
-        setStatus("Mikrofon-Taste dr\u00fccken zum Starten");
     }
 
     // -----------------------------------------------------------------------
@@ -229,10 +228,9 @@ public class ChatActivity extends Activity {
     }
 
     // -----------------------------------------------------------------------
-    // Callback aus Rust (auf beliebigem Thread — wird auf Main gepostet)
+    // Callback aus Rust
     // -----------------------------------------------------------------------
 
-    /** Wird von Rust via JNI aufgerufen. */
     public void onChatSegment(String segment) {
         mainHandler.post(() -> handleSpeechSegment(segment.trim()));
     }
@@ -314,10 +312,10 @@ public class ChatActivity extends Activity {
                 history.add(aiMsg);
 
                 appendMarkdown("**AI** *(" + activeModel + "):* " + aiText + "\n\n---\n\n");
-                mainHandler.post(() -> appendTranscript(
-                    "**AI** *(" + shortModel(activeModel) + "):* " + aiText));
-
-                speakText(aiText, apiKey);
+                mainHandler.post(() -> {
+                    appendTranscript("**AI** *(" + shortModel(activeModel) + "):* " + aiText);
+                    speakText(aiText);
+                });
 
             } catch (Exception e) {
                 Log.e(TAG, "LLM error", e);
@@ -327,84 +325,16 @@ public class ChatActivity extends Activity {
     }
 
     // -----------------------------------------------------------------------
-    // TTS — DeepInfra Kokoro
+    // TTS — Sherpa-ONNX Thorsten (offline)
     // -----------------------------------------------------------------------
 
-    private void speakText(String text, String apiKey) {
-        mainHandler.post(() -> setStatus("Sprachausgabe\u2026"));
-        new Thread(() -> {
-            try {
-                SharedPreferences prefs = getSharedPreferences(
-                    SettingsActivity.PREFS_NAME, MODE_PRIVATE);
-                String voice = prefs.getString(KEY_CHAT_TTS_VOICE, DEFAULT_TTS_VOICE);
-                JSONObject body = new JSONObject();
-                body.put("text", text);
-                body.put("voice", voice);
-                body.put("output_format", "mp3");
-
-                URL url = new URL(DEEPINFRA_TTS_URL);
-                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("POST");
-                conn.setRequestProperty("Authorization", "Bearer " + apiKey);
-                conn.setRequestProperty("Content-Type", "application/json");
-                conn.setDoOutput(true);
-                conn.setConnectTimeout(10_000);
-                conn.setReadTimeout(30_000);
-                try (OutputStream os = conn.getOutputStream()) {
-                    os.write(body.toString().getBytes(StandardCharsets.UTF_8));
-                }
-                int code = conn.getResponseCode();
-                if (code != 200) {
-                    showError("TTS Fehler " + code + ": " + readStream(conn.getErrorStream()));
-                    finishProcessing(); return;
-                }
-                String jsonResp = readStream(conn.getInputStream());
-                JSONObject jResp = new JSONObject(jsonResp);
-                String audioB64 = jResp.optString("audio", "");
-                if (audioB64.isEmpty()) {
-                    showError("TTS: Keine Audiodaten erhalten.");
-                    finishProcessing(); return;
-                }
-                byte[] audioBytes = android.util.Base64.decode(audioB64, android.util.Base64.DEFAULT);
-                File tmpMp3 = File.createTempFile("chat_tts_", ".mp3", getCacheDir());
-                try (java.io.FileOutputStream fos = new java.io.FileOutputStream(tmpMp3)) {
-                    fos.write(audioBytes);
-                }
-                mainHandler.post(() -> playAudioFile(tmpMp3));
-            } catch (Exception e) {
-                Log.e(TAG, "TTS error", e);
-                showError("TTS Fehler: " + e.getMessage());
-                finishProcessing();
-            }
-        }).start();
-    }
-
-    private void playAudioFile(File mp3) {
+    private void speakText(String text) {
+        setStatus("Sprachausgabe\u2026");
         requestAudioFocus();
-        try {
-            if (mediaPlayer != null) { mediaPlayer.release(); mediaPlayer = null; }
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setAudioAttributes(new AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_MEDIA)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build());
-            mediaPlayer.setDataSource(mp3.getAbsolutePath());
-            mediaPlayer.setOnCompletionListener(mp -> {
-                mp.release(); mediaPlayer = null;
-                mp3.delete();
-                abandonAudioFocus();
-                finishProcessing();
-            });
-            mediaPlayer.setOnErrorListener((mp, what, extra) -> {
-                Log.e(TAG, "MediaPlayer error: " + what + "/" + extra);
-                finishProcessing(); return true;
-            });
-            mediaPlayer.prepare();
-            mediaPlayer.start();
-            setStatus("AI spricht\u2026");
-        } catch (Exception e) {
-            Log.e(TAG, "playAudioFile", e);
+        tts.speak(text, () -> {
+            abandonAudioFocus();
             finishProcessing();
-        }
+        });
     }
 
     private void finishProcessing() {
@@ -473,10 +403,8 @@ public class ChatActivity extends Activity {
     // -----------------------------------------------------------------------
 
     private void appendTranscript(String text) {
-        mainHandler.post(() -> {
-            tvTranscript.append("\n\n" + text);
-            scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
-        });
+        tvTranscript.append("\n\n" + text);
+        scrollView.post(() -> scrollView.fullScroll(View.FOCUS_DOWN));
     }
     private void appendMarkdown(String text) { markdownLog.append(text); }
     private void setStatus(String msg) { mainHandler.post(() -> tvStatus.setText(msg)); }
@@ -494,7 +422,7 @@ public class ChatActivity extends Activity {
     }
 
     // -----------------------------------------------------------------------
-    // HTTP helper
+    // HTTP
     // -----------------------------------------------------------------------
 
     private String httpPost(String urlStr, String apiKey, String jsonBody) throws Exception {
@@ -555,7 +483,7 @@ public class ChatActivity extends Activity {
         super.onDestroy();
         stopListening();
         cleanupNative();
-        if (mediaPlayer != null) { mediaPlayer.release(); mediaPlayer = null; }
+        if (tts != null) tts.release();
         abandonAudioFocus();
         if (endwordTimeoutRunnable != null)
             mainHandler.removeCallbacks(endwordTimeoutRunnable);

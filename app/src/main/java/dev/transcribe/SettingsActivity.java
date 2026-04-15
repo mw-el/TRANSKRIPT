@@ -24,7 +24,8 @@ import java.io.IOException;
  * Exposed settings:
  *  - Save folder for recordings and transcripts (SAF folder picker)
  *  - Default e-mail address for direct mail sharing
- *  - Voice Chat settings (API key, model, TTS voice, endword, system prompt)
+ *  - Voice Chat settings (API key, model, endword, system prompt)
+ *  - TTS model status + download trigger
  */
 public class SettingsActivity extends Activity {
 
@@ -64,6 +65,7 @@ public class SettingsActivity extends Activity {
         bindFlagSwitch(R.id.switch_pause_audio,          FLAG_PAUSE_AUDIO);
         bindLanguageSpinner();
         bindChatSettings();
+        bindTtsStatus();
 
         chooseFolderButton.setOnClickListener(v -> openFolderPicker());
         resetFolderButton .setOnClickListener(v -> resetFolder());
@@ -153,7 +155,7 @@ public class SettingsActivity extends Activity {
     }
 
     // ------------------------------------------------------------------
-    // Feature flag switches (stored as marker files in getFilesDir())
+    // Feature flag switches
     // ------------------------------------------------------------------
 
     private void bindFlagSwitch(int switchId, String flagName) {
@@ -201,7 +203,7 @@ public class SettingsActivity extends Activity {
     }
 
     // ------------------------------------------------------------------
-    // Voice Chat settings
+    // Voice Chat settings (without TTS voice spinner — Thorsten is fixed)
     // ------------------------------------------------------------------
 
     private void bindChatSettings() {
@@ -211,36 +213,14 @@ public class SettingsActivity extends Activity {
         EditText modelInput     = findViewById(R.id.edit_chat_model);
         EditText endwordInput   = findViewById(R.id.edit_chat_endword);
         EditText syspromptInput = findViewById(R.id.edit_chat_sysprompt);
-        Spinner  voiceSpinner   = findViewById(R.id.spinner_chat_tts_voice);
         Button   saveBtn        = findViewById(R.id.btn_save_chat_settings);
 
-        if (apiKeyInput == null || saveBtn == null) return; // layout guard
+        if (apiKeyInput == null || saveBtn == null) return;
 
-        final String[] voices = {
-            "af_sarah", "af_bella", "af_nicole", "af_sky",
-            "am_adam",  "am_michael",
-            "bf_emma",  "bf_isabella",
-            "bm_george","bm_lewis"
-        };
-        ArrayAdapter<String> voiceAdapter = new ArrayAdapter<>(
-                this, android.R.layout.simple_spinner_item, voices);
-        voiceAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        voiceSpinner.setAdapter(voiceAdapter);
-
-        // Load saved values
         apiKeyInput.setText(prefs.getString(ChatActivity.KEY_CHAT_API_KEY, ""));
-        modelInput.setText(prefs.getString(ChatActivity.KEY_CHAT_MODEL,
-                ChatActivity.DEFAULT_MODEL));
-        endwordInput.setText(prefs.getString(ChatActivity.KEY_CHAT_ENDWORD,
-                ChatActivity.DEFAULT_ENDWORD));
-        syspromptInput.setText(prefs.getString(ChatActivity.KEY_CHAT_SYSPROMPT,
-                ChatActivity.DEFAULT_SYSPROMPT));
-
-        String savedVoice = prefs.getString(ChatActivity.KEY_CHAT_TTS_VOICE,
-                ChatActivity.DEFAULT_TTS_VOICE);
-        for (int i = 0; i < voices.length; i++) {
-            if (voices[i].equals(savedVoice)) { voiceSpinner.setSelection(i); break; }
-        }
+        modelInput.setText(prefs.getString(ChatActivity.KEY_CHAT_MODEL, ChatActivity.DEFAULT_MODEL));
+        endwordInput.setText(prefs.getString(ChatActivity.KEY_CHAT_ENDWORD, ChatActivity.DEFAULT_ENDWORD));
+        syspromptInput.setText(prefs.getString(ChatActivity.KEY_CHAT_SYSPROMPT, ChatActivity.DEFAULT_SYSPROMPT));
 
         saveBtn.setOnClickListener(v -> {
             String endword = endwordInput.getText().toString().trim().toLowerCase();
@@ -253,10 +233,44 @@ public class SettingsActivity extends Activity {
                     endword.isEmpty() ? ChatActivity.DEFAULT_ENDWORD : endword)
                 .putString(ChatActivity.KEY_CHAT_SYSPROMPT,
                     syspromptInput.getText().toString().trim())
-                .putString(ChatActivity.KEY_CHAT_TTS_VOICE,
-                    voices[voiceSpinner.getSelectedItemPosition()])
                 .apply();
             Toast.makeText(this, "Chat-Einstellungen gespeichert", Toast.LENGTH_SHORT).show();
         });
+    }
+
+    // ------------------------------------------------------------------
+    // TTS model status + download
+    // ------------------------------------------------------------------
+
+    private void bindTtsStatus() {
+        TextView  ttsStatusText = findViewById(R.id.tv_tts_status);
+        Button    ttsDownloadBtn = findViewById(R.id.btn_tts_download);
+        if (ttsStatusText == null || ttsDownloadBtn == null) return;
+
+        refreshTtsStatus(ttsStatusText, ttsDownloadBtn);
+
+        ttsDownloadBtn.setOnClickListener(v -> {
+            ttsDownloadBtn.setEnabled(false);
+            ttsStatusText.setText("Sprachmodell wird heruntergeladen\u2026");
+            SherpaOnnxTts tts = new SherpaOnnxTts(this, msg ->
+                runOnUiThread(() -> ttsStatusText.setText(msg)));
+            tts.ensureModelReady(() -> {
+                refreshTtsStatus(ttsStatusText, ttsDownloadBtn);
+                Toast.makeText(this, "Thorsten-Stimme bereit!", Toast.LENGTH_SHORT).show();
+            });
+        });
+    }
+
+    private void refreshTtsStatus(TextView statusText, Button downloadBtn) {
+        SherpaOnnxTts probe = new SherpaOnnxTts(this, msg -> {});
+        if (probe.isModelReady()) {
+            statusText.setText("\u2705 Thorsten Medium \u2014 bereit (offline)");
+            downloadBtn.setEnabled(false);
+            downloadBtn.setText("Bereits installiert");
+        } else {
+            statusText.setText("\u26a0\ufe0f Sprachmodell nicht installiert (~65 MB)");
+            downloadBtn.setEnabled(true);
+            downloadBtn.setText("Thorsten-Stimme herunterladen");
+        }
     }
 }

@@ -14,8 +14,8 @@ android {
         applicationId = "dev.transcribe"
         minSdk = 26
         targetSdk = 35
-        versionCode = 33
-        versionName = "0.1.32"
+        versionCode = 34
+        versionName = "0.1.33"
         ndk {
             abiFilters += "arm64-v8a"
         }
@@ -45,8 +45,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-
-
     // Source sets — the Rust-built .so files land in jniLibs via cargo-ndk
     sourceSets {
         getByName("main") {
@@ -56,20 +54,15 @@ android {
 
     packaging {
         jniLibs {
-            useLegacyPackaging = false          // extractNativeLibs=false (16KB safe)
+            useLegacyPackaging = false
             keepDebugSymbols += "**/*.so"
         }
     }
 
-    // Play Asset Delivery: large model files go into a separate asset pack
-    // so the base module stays under the 200 MB Play Store limit.
+    // Play Asset Delivery
     assetPacks += listOf(":model_assets")
 }
 
-// For APK builds (assemble/install), asset packs are ignored by AGP so we
-// must include the asset-pack assets as an extra source directory.  For
-// bundle builds the asset pack module handles delivery and we must NOT add
-// the directory here (would cause duplicate-resource errors).
 val isBundle = gradle.startParameter.taskNames.any {
     it.contains("bundle", ignoreCase = true)
 }
@@ -82,15 +75,25 @@ if (!isBundle) {
     }
 }
 
-dependencies {
-    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.22.0")
-    // FileProvider (content:// URIs for sharing)
-    implementation("androidx.core:core:1.13.1")
-    // DocumentFile — Storage Access Framework (SAF) folder access
-    implementation("androidx.documentfile:documentfile:1.0.1")
+// ---------------------------------------------------------------------------
+// Repositories for sherpa-onnx AAR (JitPack)
+// ---------------------------------------------------------------------------
+
+repositories {
+    maven { url = uri("https://jitpack.io") }
+    google()
+    mavenCentral()
 }
 
-// Dedicated configuration to resolve the ORT AAR for the Rust build
+dependencies {
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.22.0")
+    implementation("androidx.core:core:1.13.1")
+    implementation("androidx.documentfile:documentfile:1.0.1")
+    // Sherpa-ONNX Android AAR — offline TTS (Thorsten-Medium Piper VITS)
+    implementation("com.github.k2-fsa:sherpa-onnx:1.10.30")
+}
+
+// Dedicated configuration for ORT native libs
 val ortNative: Configuration by configurations.creating
 dependencies {
     ortNative("com.microsoft.onnxruntime:onnxruntime-android:1.22.0")
@@ -120,9 +123,8 @@ val cargoNdkBuild by tasks.registering(Exec::class) {
 
     dependsOn(extractOrt)
 
-    workingDir = rootProject.projectDir   // Cargo.toml lives at project root
+    workingDir = rootProject.projectDir
 
-    // Detect NDK path from local.properties or env
     val ndkDir = project.findProperty("ndk.dir")?.toString()
         ?: System.getenv("ANDROID_NDK_HOME")
         ?: System.getenv("ANDROID_NDK")
@@ -130,7 +132,6 @@ val cargoNdkBuild by tasks.registering(Exec::class) {
 
     environment("ANDROID_NDK_HOME", ndkDir)
 
-    // Ensure ~/.cargo/bin is on the PATH for the Gradle daemon
     val cargoBin = "${System.getProperty("user.home")}/.cargo/bin"
     val currentPath = System.getenv("PATH") ?: ""
     environment("PATH", if (currentPath.contains(cargoBin)) currentPath else "$cargoBin:$currentPath")
@@ -149,7 +150,6 @@ val cargoNdkBuild by tasks.registering(Exec::class) {
         "build", "--release"
     )
 
-    // Copy libc++_shared.so from NDK (needed because Rust links against it dynamically)
     doLast {
         val ndkPath = environment["ANDROID_NDK_HOME"] as String
         val prebuiltHost = when {
@@ -170,7 +170,6 @@ val cargoNdkBuild by tasks.registering(Exec::class) {
     outputs.dir(jniLibsDir)
 }
 
-// Wire the cargo-ndk build into the Android build lifecycle
 tasks.named("preBuild") {
     dependsOn(cargoNdkBuild)
 }
@@ -181,14 +180,11 @@ tasks.named("preBuild") {
 
 data class ModelFile(val name: String, val sha256: String)
 
-// Small metadata files stay in app/src/main/assets (always in base module)
 val appAssetFiles = listOf(
     ModelFile("config.json", ""),
     ModelFile("vocab.txt", ""),
 )
 
-// Large ONNX model files go into the model_assets asset pack so the base
-// module stays under the Play Store 200 MB compressed-download limit.
 val modelPackFiles = listOf(
     ModelFile("encoder-model.int8.onnx",
         "6139d2fa7e1b086097b277c7149725edbab89cc7c7ae64b23c741be4055aff09"),
@@ -215,16 +211,16 @@ fun downloadToDir(assetsDir: File, files: List<ModelFile>) {
             }
             val hash = digest.digest().joinToString("") { "%02x".format(it) }
             if (hash == model.sha256) {
-                println("  ✓ ${model.name} already downloaded and verified")
+                println("  \u2713 ${model.name} already downloaded and verified")
                 return@forEach
             } else {
-                println("  ✗ ${model.name} checksum mismatch, re-downloading...")
+                println("  \u2717 ${model.name} checksum mismatch, re-downloading...")
                 destFile.delete()
             }
         }
 
         if (!destFile.exists()) {
-            println("  ↓ Downloading ${model.name}...")
+            println("  \u2193 Downloading ${model.name}...")
             val downloadUrl = "$huggingFaceRepo/${model.name}?download=true"
             val proc = ProcessBuilder("curl", "-L", "-f", "-o", destFile.absolutePath, downloadUrl)
                 .inheritIO()
@@ -251,7 +247,7 @@ fun downloadToDir(assetsDir: File, files: List<ModelFile>) {
                         "  Got:      $hash"
                     )
                 }
-                println("  ✓ ${model.name} verified")
+                println("  \u2713 ${model.name} verified")
             }
         }
     }
@@ -261,9 +257,7 @@ val downloadModels by tasks.registering {
     description = "Download HuggingFace Parakeet model assets"
     group = "build"
 
-    // Small metadata -> app assets (base module)
     val appAssetsDir = project.file("src/main/assets/parakeet-tdt-0.6b-v3-int8")
-    // Large ONNX models -> asset pack (separate install-time delivery)
     val packAssetsDir = rootProject.file("model_assets/src/main/assets/parakeet-tdt-0.6b-v3-int8")
 
     outputs.dir(appAssetsDir)
