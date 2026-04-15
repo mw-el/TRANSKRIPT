@@ -315,7 +315,7 @@
             android:orientation="vertical"
             android:background="@drawable/bg_card"
             android:padding="@dimen/space_5"
-            android:layout_marginBottom="@dimen/space_6">
+            android:layout_marginBottom="@dimen/space_4">
 
             <TextView
                 android:layout_width="match_parent"
@@ -346,6 +346,181 @@
                 android:layout_height="wrap_content"
                 android:text="@string/settings_email_save"
                 style="@style/ButtonStyle"/>
+        </LinearLayout>
+
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <!-- Section: Voice Chat                                         -->
+        <!-- ═══════════════════════════════════════════════════════════ -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="VOICE CHAT"
+            style="@style/SectionLabelStyle"
+            android:textAllCaps="true"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="@dimen/space_5"
+            android:layout_marginBottom="@dimen/space_6">
+
+            <!-- API Key -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="DeepInfra API Key"
+                android:textColor="@color/cl_ink"
+                android:fontFamily="@font/inter_medium"
+                android:textSize="@dimen/text_normal"
+                android:layout_marginBottom="@dimen/space_2"/>
+
+            <EditText
+                android:id="@+id/edit_chat_api_key"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="sk-..."
+                android:inputType="textPassword"
+                android:textColor="@color/cl_ink"
+                android:textColorHint="@color/cl_ink_soft"
+                android:background="@drawable/bg_edit_text"
+                android:padding="@dimen/space_3"
+                android:fontFamily="@font/inter_regular"
+                android:textSize="@dimen/text_normal"
+                android:layout_marginBottom="@dimen/space_4"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/cl_border"
+                android:layout_marginBottom="@dimen/space_4"/>
+
+            <!-- LLM Model -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="LLM-Modell"
+                android:textColor="@color/cl_ink"
+                android:fontFamily="@font/inter_medium"
+                android:textSize="@dimen/text_normal"
+                android:layout_marginBottom="@dimen/space_2"/>
+
+            <EditText
+                android:id="@+id/edit_chat_model"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="meta-llama/Meta-Llama-3.1-70B-Instruct"
+                android:inputType="text"
+                android:textColor="@color/cl_ink"
+                android:textColorHint="@color/cl_ink_soft"
+                android:background="@drawable/bg_edit_text"
+                android:padding="@dimen/space_3"
+                android:fontFamily="@font/inter_regular"
+                android:textSize="@dimen/text_normal"
+                android:layout_marginBottom="@dimen/space_4"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/cl_border"
+                android:layout_marginBottom="@dimen/space_4"/>
+
+            <!-- TTS Voice -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="TTS-Stimme (Kokoro)"
+                android:textColor="@color/cl_ink"
+                android:fontFamily="@font/inter_medium"
+                android:textSize="@dimen/text_normal"
+                android:layout_marginBottom="@dimen/space_2"/>
+
+            <Spinner
+                android:id="@+id/spinner_chat_tts_voice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_4"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/cl_border"
+                android:layout_marginBottom="@dimen/space_4"/>
+
+            <!-- Endword -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Endwort (Sende-Signal)"
+                android:textColor="@color/cl_ink"
+                android:fontFamily="@font/inter_medium"
+                android:textSize="@dimen/text_normal"
+                android:layout_marginBottom="@dimen/space_2"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Dieses Wort am Ende deiner Frage sendet die Nachricht an die KI."
+                android:textColor="@color/cl_ink_soft"
+                android:fontFamily="@font/inter_regular"
+                android:textSize="@dimen/text_small"
+                android:layout_marginBottom="@dimen/space_2"/>
+
+            <EditText
+                android:id="@+id/edit_chat_endword"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="over"
+                android:inputType="text"
+                android:textColor="@color/cl_ink"
+                android:textColorHint="@color/cl_ink_soft"
+                android:background="@drawable/bg_edit_text"
+                android:padding="@dimen/space_3"
+                android:fontFamily="@font/inter_regular"
+                android:textSize="@dimen/text_normal"
+                android:layout_marginBottom="@dimen/space_4"/>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/cl_border"
+                android:layout_marginBottom="@dimen/space_4"/>
+
+            <!-- System Prompt -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="System Prompt"
+                android:textColor="@color/cl_ink"
+                android:fontFamily="@font/inter_medium"
+                android:textSize="@dimen/text_normal"
+                android:layout_marginBottom="@dimen/space_2"/>
+
+            <EditText
+                android:id="@+id/edit_chat_sysprompt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Du bist ein pr&#228;ziser Diskussionspartner&#8230;"
+                android:inputType="textMultiLine"
+                android:minLines="3"
+                android:gravity="top|start"
+                android:textColor="@color/cl_ink"
+                android:textColorHint="@color/cl_ink_soft"
+                android:background="@drawable/bg_edit_text"
+                android:padding="@dimen/space_3"
+                android:fontFamily="@font/inter_regular"
+                android:textSize="@dimen/text_normal"
+                android:layout_marginBottom="@dimen/space_4"/>
+
+            <!-- Save button -->
+            <Button
+                android:id="@+id/btn_save_chat_settings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Chat-Einstellungen speichern"
+                style="@style/ButtonStyle"/>
+
         </LinearLayout>
 
     </LinearLayout>

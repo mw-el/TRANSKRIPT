@@ -24,6 +24,7 @@ import java.io.IOException;
  * Exposed settings:
  *  - Save folder for recordings and transcripts (SAF folder picker)
  *  - Default e-mail address for direct mail sharing
+ *  - Voice Chat settings (API key, model, TTS voice, endword, system prompt)
  */
 public class SettingsActivity extends Activity {
 
@@ -32,11 +33,11 @@ public class SettingsActivity extends Activity {
     public static final String KEY_EMAIL_ADDRESS   = "default_email";
     public static final String KEY_LANGUAGE        = "target_language";
 
-    private static final int    REQ_PICK_FOLDER      = 301;
-    private static final String TAG                  = "SettingsActivity";
-    private static final String FLAG_AUTO_RECORD     = "auto_record";
+    private static final int    REQ_PICK_FOLDER        = 301;
+    private static final String TAG                    = "SettingsActivity";
+    private static final String FLAG_AUTO_RECORD       = "auto_record";
     private static final String FLAG_SELECT_TRANSCRIPT = "select_transcription";
-    private static final String FLAG_PAUSE_AUDIO     = "pause_audio";
+    private static final String FLAG_PAUSE_AUDIO       = "pause_audio";
 
     private TextView folderPathText;
     private EditText emailInput;
@@ -47,8 +48,8 @@ public class SettingsActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings_activity);
 
-        folderPathText = findViewById(R.id.txt_folder_path);
-        emailInput     = findViewById(R.id.edit_email);
+        folderPathText  = findViewById(R.id.txt_folder_path);
+        emailInput      = findViewById(R.id.edit_email);
         languageSpinner = findViewById(R.id.spinner_language);
 
         Button chooseFolderButton = findViewById(R.id.btn_choose_folder);
@@ -62,6 +63,7 @@ public class SettingsActivity extends Activity {
         bindFlagSwitch(R.id.switch_select_transcription, FLAG_SELECT_TRANSCRIPT);
         bindFlagSwitch(R.id.switch_pause_audio,          FLAG_PAUSE_AUDIO);
         bindLanguageSpinner();
+        bindChatSettings();
 
         chooseFolderButton.setOnClickListener(v -> openFolderPicker());
         resetFolderButton .setOnClickListener(v -> resetFolder());
@@ -105,7 +107,8 @@ public class SettingsActivity extends Activity {
             try {
                 Uri uri = Uri.parse(uriString);
                 getContentResolver().releasePersistableUriPermission(uri,
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                        | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             } catch (Exception ignored) {}
         }
         prefs.edit().remove(KEY_SAVE_FOLDER_URI).apply();
@@ -136,6 +139,17 @@ public class SettingsActivity extends Activity {
         String saved = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
                 .getString(KEY_EMAIL_ADDRESS, "");
         emailInput.setText(saved);
+    }
+
+    private void saveEmail() {
+        String email = emailInput.getText().toString().trim();
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+                .edit().putString(KEY_EMAIL_ADDRESS, email).apply();
+        Toast.makeText(this,
+                email.isEmpty()
+                        ? getString(R.string.settings_email_cleared)
+                        : getString(R.string.settings_email_saved),
+                Toast.LENGTH_SHORT).show();
     }
 
     // ------------------------------------------------------------------
@@ -169,14 +183,10 @@ public class SettingsActivity extends Activity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         languageSpinner.setAdapter(adapter);
 
-        // Select the currently saved language
         String saved = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
                 .getString(KEY_LANGUAGE, LanguagePostProcessor.DEFAULT_LANGUAGE);
         for (int i = 0; i < codes.length; i++) {
-            if (codes[i].equals(saved)) {
-                languageSpinner.setSelection(i);
-                break;
-            }
+            if (codes[i].equals(saved)) { languageSpinner.setSelection(i); break; }
         }
 
         languageSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -190,14 +200,63 @@ public class SettingsActivity extends Activity {
         });
     }
 
-    private void saveEmail() {
-        String email = emailInput.getText().toString().trim();
-        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-                .edit().putString(KEY_EMAIL_ADDRESS, email).apply();
-        Toast.makeText(this,
-                email.isEmpty()
-                        ? getString(R.string.settings_email_cleared)
-                        : getString(R.string.settings_email_saved),
-                Toast.LENGTH_SHORT).show();
+    // ------------------------------------------------------------------
+    // Voice Chat settings
+    // ------------------------------------------------------------------
+
+    private void bindChatSettings() {
+        SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+
+        EditText apiKeyInput    = findViewById(R.id.edit_chat_api_key);
+        EditText modelInput     = findViewById(R.id.edit_chat_model);
+        EditText endwordInput   = findViewById(R.id.edit_chat_endword);
+        EditText syspromptInput = findViewById(R.id.edit_chat_sysprompt);
+        Spinner  voiceSpinner   = findViewById(R.id.spinner_chat_tts_voice);
+        Button   saveBtn        = findViewById(R.id.btn_save_chat_settings);
+
+        if (apiKeyInput == null || saveBtn == null) return; // layout guard
+
+        final String[] voices = {
+            "af_sarah", "af_bella", "af_nicole", "af_sky",
+            "am_adam",  "am_michael",
+            "bf_emma",  "bf_isabella",
+            "bm_george","bm_lewis"
+        };
+        ArrayAdapter<String> voiceAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, voices);
+        voiceAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        voiceSpinner.setAdapter(voiceAdapter);
+
+        // Load saved values
+        apiKeyInput.setText(prefs.getString(ChatActivity.KEY_CHAT_API_KEY, ""));
+        modelInput.setText(prefs.getString(ChatActivity.KEY_CHAT_MODEL,
+                ChatActivity.DEFAULT_MODEL));
+        endwordInput.setText(prefs.getString(ChatActivity.KEY_CHAT_ENDWORD,
+                ChatActivity.DEFAULT_ENDWORD));
+        syspromptInput.setText(prefs.getString(ChatActivity.KEY_CHAT_SYSPROMPT,
+                ChatActivity.DEFAULT_SYSPROMPT));
+
+        String savedVoice = prefs.getString(ChatActivity.KEY_CHAT_TTS_VOICE,
+                ChatActivity.DEFAULT_TTS_VOICE);
+        for (int i = 0; i < voices.length; i++) {
+            if (voices[i].equals(savedVoice)) { voiceSpinner.setSelection(i); break; }
+        }
+
+        saveBtn.setOnClickListener(v -> {
+            String endword = endwordInput.getText().toString().trim().toLowerCase();
+            prefs.edit()
+                .putString(ChatActivity.KEY_CHAT_API_KEY,
+                    apiKeyInput.getText().toString().trim())
+                .putString(ChatActivity.KEY_CHAT_MODEL,
+                    modelInput.getText().toString().trim())
+                .putString(ChatActivity.KEY_CHAT_ENDWORD,
+                    endword.isEmpty() ? ChatActivity.DEFAULT_ENDWORD : endword)
+                .putString(ChatActivity.KEY_CHAT_SYSPROMPT,
+                    syspromptInput.getText().toString().trim())
+                .putString(ChatActivity.KEY_CHAT_TTS_VOICE,
+                    voices[voiceSpinner.getSelectedItemPosition()])
+                .apply();
+            Toast.makeText(this, "Chat-Einstellungen gespeichert", Toast.LENGTH_SHORT).show();
+        });
     }
 }
