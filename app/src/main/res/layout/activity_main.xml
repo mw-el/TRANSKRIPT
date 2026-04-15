@@ -100,8 +100,7 @@
                     android:paddingEnd="@dimen/space_4"
                     android:background="@drawable/bg_button_primary"
                     android:backgroundTint="@color/cl_accent2"
-                    android:stateListAnimator="@null"
-                    />
+                    android:stateListAnimator="@null"/>
 
                 <TextView
                     android:id="@+id/txt_mic_done"
@@ -161,8 +160,7 @@
                     android:paddingEnd="@dimen/space_4"
                     android:background="@drawable/bg_button_primary"
                     android:backgroundTint="@color/cl_accent2"
-                    android:stateListAnimator="@null"
-                    />
+                    android:stateListAnimator="@null"/>
 
                 <TextView
                     android:id="@+id/txt_ime_done"
@@ -221,8 +219,7 @@
                     android:paddingEnd="@dimen/space_4"
                     android:background="@drawable/bg_button_primary"
                     android:backgroundTint="@color/cl_accent2"
-                    android:stateListAnimator="@null"
-                    />
+                    android:stateListAnimator="@null"/>
 
                 <TextView
                     android:id="@+id/txt_folder_done"
@@ -237,6 +234,44 @@
 
         </LinearLayout>
 
+        <!-- Voice Chat card (NEW) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_card"
+            android:padding="@dimen/space_5"
+            android:layout_marginBottom="@dimen/space_4">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Voice Chat"
+                android:textSize="@dimen/text_section"
+                android:fontFamily="@font/poppins_semibold"
+                android:textStyle="bold"
+                android:textColor="@color/cl_ink"
+                android:layout_marginBottom="@dimen/space_2"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="KI-Gespräch per Sprache — Codewort zum Senden, Antwort wird vorgelesen."
+                android:fontFamily="@font/inter_regular"
+                android:textColor="@color/cl_ink_soft"
+                android:textSize="@dimen/text_button"
+                android:layout_marginBottom="@dimen/space_4"/>
+
+            <Button
+                android:id="@+id/btn_chat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Voice Chat starten"
+                style="@style/ButtonStyle"
+                android:backgroundTint="@color/cl_accent" />
+        </LinearLayout>
+
+        <!-- Dictate card -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

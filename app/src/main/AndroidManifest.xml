@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
@@ -33,6 +34,13 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/settings_title"
+            android:exported="false" />
+
+        <!-- Voice Chat Activity -->
+        <activity
+            android:name=".ChatActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
         <!-- Live Subtitles Activity -->

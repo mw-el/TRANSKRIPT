@@ -85,6 +85,11 @@ public class MainActivity extends Activity {
             popup.show();
         });
 
+        // Voice Chat (NEW)
+        Button chatButton = findViewById(R.id.btn_chat);
+        chatButton.setOnClickListener(v ->
+                startActivity(new Intent(this, ChatActivity.class)));
+
         Button dictateButton = findViewById(R.id.btn_dictate);
         dictateButton.setOnClickListener(v ->
                 startActivity(new Intent(this, DictateActivity.class)));
@@ -110,10 +115,6 @@ public class MainActivity extends Activity {
         super.onResume();
         updateSetupCard();
     }
-
-    // ------------------------------------------------------------------
-    // Setup card
-    // ------------------------------------------------------------------
 
     private void updateSetupCard() {
         boolean hasMic    = checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
@@ -145,10 +146,6 @@ public class MainActivity extends Activity {
                 | Intent.FLAG_GRANT_PREFIX_URI_PERMISSION);
         startActivityForResult(intent, REQ_PICK_FOLDER);
     }
-
-    // ------------------------------------------------------------------
-    // Onboarding dialog (shown once when setup is incomplete)
-    // ------------------------------------------------------------------
 
     private void showOnboardingIfNeeded() {
         if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
@@ -182,7 +179,6 @@ public class MainActivity extends Activity {
         text.setLineSpacing(0, 1.4f);
         root.addView(text);
 
-        // Language selection
         android.widget.TextView langLabel = new android.widget.TextView(this);
         langLabel.setText(getString(R.string.settings_language_label));
         langLabel.setTextSize(14);
@@ -229,10 +225,6 @@ public class MainActivity extends Activity {
                 .show();
     }
 
-    // ------------------------------------------------------------------
-    // IME helper
-    // ------------------------------------------------------------------
-
     private boolean isImeEnabled() {
         android.view.inputmethod.InputMethodManager imm =
                 (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
@@ -241,10 +233,6 @@ public class MainActivity extends Activity {
         }
         return false;
     }
-
-    // ------------------------------------------------------------------
-    // Permissions
-    // ------------------------------------------------------------------
 
     private void checkAndRequestPermissions() {
         if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
@@ -309,7 +297,6 @@ public class MainActivity extends Activity {
         }
     }
 
-    // Called from Rust
     public void onStatusUpdate(String status) {
         runOnUiThread(() -> statusText.setText("Status: " + status));
     }

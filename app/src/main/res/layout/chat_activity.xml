@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/cl_bg">
+
+    <!-- Toolbar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:background="@color/cl_bg">
+
+        <ImageButton
+            android:id="@+id/btn_chat_close"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_close"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Schließen"
+            android:tint="@color/cl_ink" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Voice Chat"
+            android:textSize="18sp"
+            android:fontFamily="@font/poppins_semibold"
+            android:textStyle="bold"
+            android:textColor="@color/cl_ink"
+            android:paddingStart="8dp" />
+
+        <ImageButton
+            android:id="@+id/btn_chat_share"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_share"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Transkript teilen"
+            android:tint="@color/cl_ink" />
+
+        <ImageButton
+            android:id="@+id/btn_chat_settings"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@drawable/ic_settings"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Einstellungen"
+            android:tint="@color/cl_ink" />
+    </LinearLayout>
+
+    <!-- Transcript scroll area -->
+    <ScrollView
+        android:id="@+id/scroll_chat"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="16dp"
+        android:clipToPadding="false">
+
+        <TextView
+            android:id="@+id/tv_chat_transcript"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:fontFamily="@font/inter_regular"
+            android:textColor="@color/cl_ink"
+            android:lineSpacingMultiplier="1.5"
+            android:text="" />
+    </ScrollView>
+
+    <!-- Status bar -->
+    <TextView
+        android:id="@+id/tv_chat_status"
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:gravity="center"
+        android:textSize="13sp"
+        android:fontFamily="@font/inter_regular"
+        android:textColor="@color/cl_ink_soft"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="Bereit" />
+
+    <!-- Mic button row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:gravity="center"
+        android:background="@color/cl_bg">
+
+        <ImageButton
+            android:id="@+id/btn_chat_mic"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@drawable/ic_mic"
+            android:background="@drawable/bg_round_button"
+            android:contentDescription="Sprechen / Stopp" />
+    </LinearLayout>
+
+</LinearLayout>
