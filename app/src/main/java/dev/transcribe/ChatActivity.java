@@ -70,7 +70,7 @@ public class ChatActivity extends Activity {
     public static final String KEY_CHAT_SYSPROMPT = "chat_sysprompt";
 
     public static final String DEFAULT_MODEL     = "Qwen/Qwen3-235B-A22B-Instruct";
-    public static final String DEFAULT_ENDWORD   = "over";
+    public static final String DEFAULT_ENDWORD   = "dialogende";
     public static final String DEFAULT_SYSPROMPT =
         "Du bist ein pr\u00e4ziser Diskussionspartner. Antworte konzise auf Deutsch. "
         + "Keine unn\u00f6tigen Wiederholungen. Stelle R\u00fcckfragen wenn n\u00f6tig.";

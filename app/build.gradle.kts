@@ -56,6 +56,8 @@ android {
         jniLibs {
             useLegacyPackaging = false
             keepDebugSymbols += "**/*.so"
+            // sherpa-onnx AAR and onnxruntime-android both ship libonnxruntime.so
+            pickFirsts += "**/libonnxruntime.so"
         }
     }
 
@@ -75,22 +77,12 @@ if (!isBundle) {
     }
 }
 
-// ---------------------------------------------------------------------------
-// Repositories for sherpa-onnx AAR (JitPack)
-// ---------------------------------------------------------------------------
-
-repositories {
-    maven { url = uri("https://jitpack.io") }
-    google()
-    mavenCentral()
-}
-
 dependencies {
     implementation("com.microsoft.onnxruntime:onnxruntime-android:1.22.0")
     implementation("androidx.core:core:1.13.1")
     implementation("androidx.documentfile:documentfile:1.0.1")
     // Sherpa-ONNX Android AAR — offline TTS (Thorsten-Medium Piper VITS)
-    implementation("com.github.k2-fsa:sherpa-onnx:1.10.30")
+    implementation(files("libs/sherpa-onnx-1.12.38.aar"))
 }
 
 // Dedicated configuration for ORT native libs

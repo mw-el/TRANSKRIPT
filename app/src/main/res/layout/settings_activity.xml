@@ -426,7 +426,7 @@
                 android:background="@color/cl_border"
                 android:layout_marginBottom="@dimen/space_4"/>
 
-            <!-- TTS Voice -->
+            <!-- TTS Voice (Kokoro — legacy, still in prefs) -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -440,6 +440,33 @@
                 android:id="@+id/spinner_chat_tts_voice"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_4"/>
+
+            <!-- Offline TTS model (Sherpa-ONNX / Thorsten) -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Offline-Sprachmodell (Thorsten Medium)"
+                android:textColor="@color/cl_ink"
+                android:fontFamily="@font/inter_medium"
+                android:textSize="@dimen/text_normal"
+                android:layout_marginBottom="@dimen/space_2"/>
+
+            <TextView
+                android:id="@+id/tv_tts_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textColor="@color/cl_ink_soft"
+                android:fontFamily="@font/inter_regular"
+                android:textSize="@dimen/text_small"
+                android:layout_marginBottom="@dimen/space_2"/>
+
+            <Button
+                android:id="@+id/btn_tts_download"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Thorsten-Stimme herunterladen"
                 android:layout_marginBottom="@dimen/space_4"/>
 
             <View

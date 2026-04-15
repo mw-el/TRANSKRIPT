@@ -63,6 +63,12 @@ public class SherpaOnnxTts {
         this.statusListener = statusListener;
     }
 
+    private void postStatus(String message) {
+        if (statusListener != null) {
+            mainHandler.post(() -> statusListener.onStatus(message));
+        }
+    }
+
     /** Returns the directory where model files are stored. */
     private File modelDir() {
         return new File(context.getFilesDir(), MODEL_DIR);
@@ -176,7 +182,7 @@ public class SherpaOnnxTts {
         config.setModel(modelConfig);
         config.setMaxNumSentences(1);
 
-        ttsEngine = new OfflineTts(config);
+        ttsEngine = new OfflineTts(null, config);
         Log.i(TAG, "TTS engine initialised");
     }
 
@@ -194,7 +200,7 @@ public class SherpaOnnxTts {
             try {
                 // speakerId 0 = default for Thorsten-Medium (single speaker model)
                 float[] samples   = ttsEngine.generate(text, 0, 1.0f).getSamples();
-                int     sampleRate = ttsEngine.getSampleRate();
+                int     sampleRate = ttsEngine.sampleRate();
                 playPcm(samples, sampleRate);
             } catch (Exception e) {
                 Log.e(TAG, "speak error", e);
