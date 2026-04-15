@@ -1,4 +1,5 @@
 pub mod assets;
+pub mod chat_stt;
 pub mod engine;
 pub mod ime;
 pub mod main_activity;
