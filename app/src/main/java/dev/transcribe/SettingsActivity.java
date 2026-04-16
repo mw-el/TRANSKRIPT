@@ -239,38 +239,22 @@ public class SettingsActivity extends Activity {
     }
 
     // ------------------------------------------------------------------
-    // TTS model status + download
+    // TTS model status
     // ------------------------------------------------------------------
 
     private void bindTtsStatus() {
-        TextView  ttsStatusText = findViewById(R.id.tv_tts_status);
-        Button    ttsDownloadBtn = findViewById(R.id.btn_tts_download);
-        if (ttsStatusText == null || ttsDownloadBtn == null) return;
+        TextView ttsStatusText = findViewById(R.id.tv_tts_status);
+        Button   ttsDownloadBtn = findViewById(R.id.btn_tts_download);
+        if (ttsStatusText == null) return;
 
-        refreshTtsStatus(ttsStatusText, ttsDownloadBtn);
-
-        ttsDownloadBtn.setOnClickListener(v -> {
-            ttsDownloadBtn.setEnabled(false);
-            ttsStatusText.setText("Sprachmodell wird heruntergeladen\u2026");
-            SherpaOnnxTts tts = new SherpaOnnxTts(this, msg ->
-                runOnUiThread(() -> ttsStatusText.setText(msg)));
-            tts.ensureModelReady(() -> {
-                refreshTtsStatus(ttsStatusText, ttsDownloadBtn);
-                Toast.makeText(this, "Thorsten-Stimme bereit!", Toast.LENGTH_SHORT).show();
-            });
-        });
-    }
-
-    private void refreshTtsStatus(TextView statusText, Button downloadBtn) {
         SherpaOnnxTts probe = new SherpaOnnxTts(this, msg -> {});
         if (probe.isModelReady()) {
-            statusText.setText("\u2705 Thorsten Medium \u2014 bereit (offline)");
-            downloadBtn.setEnabled(false);
-            downloadBtn.setText("Bereits installiert");
+            ttsStatusText.setText("\u2705 Thorsten Medium \u2014 bereit (offline)");
         } else {
-            statusText.setText("\u26a0\ufe0f Sprachmodell nicht installiert (~65 MB)");
-            downloadBtn.setEnabled(true);
-            downloadBtn.setText("Thorsten-Stimme herunterladen");
+            ttsStatusText.setText("Thorsten Medium \u2014 wird beim ersten Sprechen entpackt");
+        }
+        if (ttsDownloadBtn != null) {
+            ttsDownloadBtn.setVisibility(android.view.View.GONE);
         }
     }
 }

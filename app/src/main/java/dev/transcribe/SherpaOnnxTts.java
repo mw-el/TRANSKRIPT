@@ -1,9 +1,9 @@
 package dev.transcribe;
 
 import android.content.Context;
+import android.content.res.AssetManager;
 import android.media.AudioAttributes;
 import android.media.AudioFormat;
-import android.media.AudioManager;
 import android.media.AudioTrack;
 import android.os.Handler;
 import android.os.Looper;
@@ -17,23 +17,11 @@ import com.k2fsa.sherpa.onnx.OfflineTtsModelConfig;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.io.IOException;
 
-/**
- * Offline TTS using Sherpa-ONNX with the Thorsten-Medium Piper VITS model.
- *
- * Model files are downloaded once from Hugging Face into getFilesDir()/tts/thorsten/
- * and reused on subsequent launches.
- *
- * Usage:
- *   SherpaOnnxTts tts = new SherpaOnnxTts(context, statusListener);
- *   tts.ensureModelReady(() -> tts.speak(text, completionCallback));
- */
 public class SherpaOnnxTts {
 
     public interface StatusListener {
-        /** Called on main thread with a human-readable status string. */
         void onStatus(String message);
     }
 
@@ -43,14 +31,18 @@ public class SherpaOnnxTts {
 
     private static final String TAG = "SherpaOnnxTts";
 
-    // Piper VITS Thorsten-Medium files on Hugging Face
-    private static final String HF_BASE =
-        "https://huggingface.co/rhasspy/piper-voices/resolve/main/de/de_DE/thorsten/medium/";
-    private static final String MODEL_FILE = "de_DE-thorsten-medium.onnx";
+    private static final String MODEL_FILE  = "de_DE-thorsten-medium.onnx";
     private static final String CONFIG_FILE = "de_DE-thorsten-medium.onnx.json";
+    private static final String ASSET_DIR   = "tts-thorsten";
+    private static final String MODEL_DIR   = "tts/thorsten";
+    private static final String MARKER      = ".ready";
 
-    private static final String MODEL_DIR = "tts/thorsten";
-    private static final String MARKER    = ".ready";
+    private static final String[] MODEL_PARTS = {
+        "de_DE-thorsten-medium.onnx.part_aa",
+        "de_DE-thorsten-medium.onnx.part_ab",
+        "de_DE-thorsten-medium.onnx.part_ac",
+        "de_DE-thorsten-medium.onnx.part_ad",
+    };
 
     private final Context        context;
     private final StatusListener statusListener;
@@ -69,12 +61,10 @@ public class SherpaOnnxTts {
         }
     }
 
-    /** Returns the directory where model files are stored. */
     private File modelDir() {
         return new File(context.getFilesDir(), MODEL_DIR);
     }
 
-    /** True if both model files and marker are present. */
     public boolean isModelReady() {
         File dir = modelDir();
         return new File(dir, MARKER).exists()
@@ -82,11 +72,6 @@ public class SherpaOnnxTts {
             && new File(dir, CONFIG_FILE).exists();
     }
 
-    /**
-     * Ensures the model is downloaded and the TTS engine is initialised.
-     * Shows status messages to the user during download.
-     * Calls onReady on the main thread when done (or on error: shows error status).
-     */
     public void ensureModelReady(Runnable onReady) {
         if (isModelReady() && ttsEngine != null) {
             onReady.run();
@@ -95,76 +80,64 @@ public class SherpaOnnxTts {
         new Thread(() -> {
             try {
                 if (!isModelReady()) {
-                    postStatus("Sprachmodell wird heruntergeladen (~65 MB) \u2013 bitte warten\u2026");
-                    downloadModels();
-                    postStatus("Sprachmodell heruntergeladen \u2013 wird geladen\u2026");
-                } else {
-                    postStatus("Sprachmodell wird geladen\u2026");
+                    postStatus("Sprachmodell wird vorbereitet …");
+                    extractFromAssets();
                 }
+                postStatus("Sprachmodell wird geladen …");
                 initEngine();
                 postStatus("Sprachmodell bereit (Thorsten Medium)");
                 mainHandler.post(onReady);
             } catch (Exception e) {
                 Log.e(TAG, "ensureModelReady failed", e);
-                postStatus("Download fehlgeschlagen \u2013 bitte WLAN pr\u00fcfen");
+                postStatus("Sprachmodell konnte nicht geladen werden");
             }
         }).start();
     }
 
-    /** Download both model files into modelDir(). Writes marker on success. */
-    private void downloadModels() throws Exception {
+    private void extractFromAssets() throws IOException {
         File dir = modelDir();
         dir.mkdirs();
-        // Remove stale marker if present
         new File(dir, MARKER).delete();
 
-        downloadFile(HF_BASE + MODEL_FILE,  new File(dir, MODEL_FILE),  1);
-        downloadFile(HF_BASE + CONFIG_FILE, new File(dir, CONFIG_FILE), 2);
+        AssetManager assets = context.getAssets();
 
-        // Write marker
-        new File(dir, MARKER).createNewFile();
-    }
-
-    private void downloadFile(String urlStr, File dest, int fileIndex) throws Exception {
-        Log.i(TAG, "Downloading " + dest.getName() + " from " + urlStr);
-        URL url = new URL(urlStr);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setInstanceFollowRedirects(true);
-        conn.setConnectTimeout(15_000);
-        conn.setReadTimeout(120_000);
-        conn.connect();
-        int code = conn.getResponseCode();
-        if (code >= 400) throw new Exception("HTTP " + code + " for " + dest.getName());
-
-        long total   = conn.getContentLengthLong();
-        long written = 0;
-        int  lastPct = -1;
-
-        try (InputStream in = conn.getInputStream();
-             FileOutputStream out = new FileOutputStream(dest)) {
+        postStatus("Sprachmodell wird zusammengesetzt …");
+        File modelDest = new File(dir, MODEL_FILE);
+        try (FileOutputStream out = new FileOutputStream(modelDest)) {
             byte[] buf = new byte[32768];
-            int n;
-            while ((n = in.read(buf)) != -1) {
-                out.write(buf, 0, n);
-                written += n;
-                if (total > 0) {
-                    int pct = (int) (written * 100 / total);
-                    if (pct != lastPct && pct % 10 == 0) {
-                        lastPct = pct;
-                        postStatus("Herunterladen (" + fileIndex + "/2): " + pct + " %\u2026");
+            for (int i = 0; i < MODEL_PARTS.length; i++) {
+                postStatus("Sprachmodell: Teil " + (i + 1) + "/" + MODEL_PARTS.length + " …");
+                try (InputStream in = assets.open(ASSET_DIR + "/" + MODEL_PARTS[i])) {
+                    int n;
+                    while ((n = in.read(buf)) != -1) {
+                        out.write(buf, 0, n);
                     }
                 }
             }
         }
-        Log.i(TAG, "Downloaded " + dest.getName() + " (" + written + " bytes)");
+
+        copyAsset(assets, ASSET_DIR + "/" + CONFIG_FILE, new File(dir, CONFIG_FILE));
+
+        new File(dir, MARKER).createNewFile();
+        Log.i(TAG, "Model extracted from assets");
     }
 
-    /** Initialise Sherpa-ONNX TTS engine from already-downloaded model files. */
+    private void copyAsset(AssetManager assets, String assetPath, File dest) throws IOException {
+        try (InputStream in = assets.open(assetPath);
+             FileOutputStream out = new FileOutputStream(dest)) {
+            byte[] buf = new byte[8192];
+            int n;
+            while ((n = in.read(buf)) != -1) {
+                out.write(buf, 0, n);
+            }
+        }
+    }
+
     private void initEngine() throws Exception {
         File dir = modelDir();
         OfflineTtsVitsModelConfig vits = new OfflineTtsVitsModelConfig();
         vits.setModel(new File(dir, MODEL_FILE).getAbsolutePath());
-        vits.setTokens("");           // Piper VITS uses the JSON config, not a tokens file
+        vits.setTokens("");
         vits.setDataDir("");
         vits.setDictDir("");
         vits.setLexicon("");
@@ -186,10 +159,6 @@ public class SherpaOnnxTts {
         Log.i(TAG, "TTS engine initialised");
     }
 
-    /**
-     * Synthesise text and play it via AudioTrack.
-     * onDone is called on the main thread when playback finishes.
-     */
     public void speak(String text, CompletionCallback onDone) {
         if (ttsEngine == null) {
             Log.e(TAG, "speak() called before engine is ready");
@@ -198,8 +167,7 @@ public class SherpaOnnxTts {
         }
         new Thread(() -> {
             try {
-                // speakerId 0 = default for Thorsten-Medium (single speaker model)
-                float[] samples   = ttsEngine.generate(text, 0, 1.0f).getSamples();
+                float[] samples    = ttsEngine.generate(text, 0, 1.0f).getSamples();
                 int     sampleRate = ttsEngine.sampleRate();
                 playPcm(samples, sampleRate);
             } catch (Exception e) {
@@ -210,9 +178,7 @@ public class SherpaOnnxTts {
         }).start();
     }
 
-    /** Play raw f32 PCM samples via AudioTrack. Blocks until playback is complete. */
     private void playPcm(float[] samples, int sampleRate) {
-        // Convert f32 to s16
         short[] pcm16 = new short[samples.length];
         for (int i = 0; i < samples.length; i++) {
             float s = samples[i];
@@ -243,7 +209,6 @@ public class SherpaOnnxTts {
         track.write(pcm16, 0, pcm16.length);
         track.play();
 
-        // Wait for playback to finish
         int played = 0;
         while (played < pcm16.length) {
             try { Thread.sleep(50); } catch (InterruptedException ignored) {}
@@ -253,7 +218,6 @@ public class SherpaOnnxTts {
         track.release();
     }
 
-    /** Release the TTS engine (call from onDestroy). */
     public void release() {
         if (ttsEngine != null) {
             ttsEngine.release();
