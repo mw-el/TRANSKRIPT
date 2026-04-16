@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SZ Cloud AI — Design System Reference</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  
+  <script>
+    (function() {
+      const saved = localStorage.getItem('sz-theme') || 'light';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+  </script>
+  <style>
+
+        :root {
+      /* Canonical colour tokens */
+      --sz-deep-sienna:   #1d1514;
+      --sz-soft-paper:    #fffdf9;
+      --sz-warm-canvas:   #fff6ef;
+      --sz-linen-sand:    #efe8de;
+      --sz-cocoa-surface: #33282a;
+      --sz-roasted-umber: #403738;
+      --sz-oat-silver:    #e6ded5;
+      --sz-walnut-text:   #5c3f34;
+      --sz-misted-taupe:  #9e9392;
+      --sz-veil-border:   #f9ecdf;
+      --sz-parchment-border:#f5e4d4;
+      --sz-halo-sand:     #f1e1d0;
+      --sz-halo-sun:      #feedba;
+      --sz-halo-amber:    #ecd6be;
+      --sz-moss-green:    #688e26;
+      --sz-signal-lime:   #98ce00;
+      --sz-ember-orange:  #ff7b33;
+      --sz-alert-red:     #ff3333;
+      --sz-sun-yellow:    #fdcb34;
+
+      /* Compatibility aliases / role tokens */
+      --darksiena:       var(--sz-deep-sienna);
+      --paper:           var(--sz-soft-paper);
+      --paper2:          var(--sz-warm-canvas);
+      --sz-warm-sand:    var(--sz-linen-sand);
+      --sz-dark-surface: var(--sz-cocoa-surface);
+      --accent:          var(--sz-ember-orange);
+      --brightgreen:     var(--sz-signal-lime);
+      --green:           var(--sz-moss-green);
+      --error:           var(--sz-alert-red);
+      --warning:         var(--sz-sun-yellow);
+      --sz-text-secondary: var(--sz-walnut-text);
+      --sz-text-tertiary:  var(--sz-misted-taupe);
+      --sz-border-strong:  var(--sz-parchment-border);
+      --sz-ring-soft:      var(--sz-halo-sand);
+      --sz-ring-sun:       var(--sz-halo-sun);
+      --sz-ring-deep:      var(--sz-halo-amber);
+
+      /* Supporting colour roles */
+      --accent-subtle:  rgba(255,123,51,.10);
+      --accent-line:    rgba(255,123,51,.50);
+      --tag-lime-bg:    rgba(104,142,38,.12);
+      --tag-lime-fg:    #4a6e10;
+      --tag-lime-bg-dk: rgba(152,206,0,.12);
+      --tag-lime-fg-dk: #98ce00;
+      --error-subtle:   rgba(255,51,51,.10);
+      --error-line:     rgba(255,51,51,.45);
+      --warning-subtle: rgba(253,203,52,.14);
+      --warning-line:   rgba(253,203,52,.50);
+
+      /* Text — fixed pairing defined in HTML */
+      --sz-text-strong: var(--sz-deep-sienna);
+      --sz-text-body:   rgba(29,21,20,.88);
+      --sz-text-muted:  rgba(29,21,20,.68);
+      --sz-text-subtle: rgba(29,21,20,.52);
+      --sz-ink-primary: var(--sz-soft-paper);
+      --sz-ink-body:    rgba(255,253,249,.88);
+      --sz-ink-muted:   rgba(255,253,249,.68);
+
+      /* Borders */
+      --sz-border-soft: #f0e2d8;
+      --sz-border-mid:  #e2cfca;
+      --sz-border-dark: #5a3030;
+
+      /* Shadows */
+      --shadow-1:  0 4px 16px rgba(34,12,16,.07);
+      --shadow-2:  0 14px 36px rgba(34,12,16,.12);
+      --shadow-dk: 0 16px 40px rgba(0,0,0,.28);
+      --shadow-dk2:0 22px 48px rgba(0,0,0,.36);
+
+      /* Fonts */
+      --font-display: 'Fira Sans', system-ui, -apple-system, sans-serif;
+      --font-body:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono:    'Fira Code', ui-monospace, monospace;
+
+      /* Type scale */
+      --text-xs:   clamp(0.72rem,  0.69rem + 0.16vw, 0.82rem);
+      --text-sm:   clamp(0.875rem, 0.84rem + 0.18vw, 0.975rem);
+      --text-base: clamp(1rem,     0.97rem + 0.18vw, 1.1rem);
+      --text-lg:   clamp(1.15rem,  1.05rem + 0.5vw,  1.45rem);
+      --text-xl:   clamp(1.5rem,   1.25rem + 0.85vw, 2.1rem);
+      --text-2xl:  clamp(2rem,     1.5rem + 1.8vw,   3.2rem);
+
+      /* Spacing */
+      --space-4: 1rem; --space-5: 1.25rem; --space-6: 1.5rem;
+      --space-8: 2rem;
+
+      /* Radii */
+      --radius-md: .875rem; --radius-lg: 1.25rem; --radius-xl: 1.75rem;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: var(--space-12) var(--space-6) var(--space-16); }
+
+    /* TYPOGRAPHY */
+    h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.015em; margin: 0; }
+    h1 { font-size: var(--text-2xl); line-height: 1.14; margin-bottom: clamp(.55rem,.38rem + .34vw,.82rem); }
+    h2 { font-size: var(--text-xl);  line-height: 1.18; margin-bottom: clamp(.48rem,.32rem + .28vw,.7rem); }
+    h3 { font-size: var(--text-lg);  line-height: 1.24; margin-bottom: .48rem; }
+    h4 { font-size: var(--text-base); line-height: 1.32; font-weight: 600; margin-bottom: .38rem; letter-spacing: -.008em; }
+    p  { font-family: var(--font-body); font-size: var(--text-base); line-height: 1.72; margin: 0 0 .9rem; }
+    p:last-child { margin-bottom: 0; }
+    code { font-family: var(--font-mono); font-size: .88em; }
+
+    /* EYEBROW — orange, one role across the whole UI */
+    .eyebrow {
+      display: inline-block;
+      padding: 0;
+      margin-bottom: clamp(.5rem, .38rem + .24vw, .65rem);
+      line-height: 1;
+      background: none;
+      box-shadow: none;
+      border-radius: 0;
+      font-size: var(--text-xs); font-weight: 700;
+      letter-spacing: .09em; text-transform: uppercase;
+      font-family: var(--font-body);
+    }
+
+    /* PILLS — semantic status, distinct from eyebrow */
+
+    /* SECTIONS */
+    .section { margin-top: var(--space-16); }
+    .section-head { display:flex; justify-content:space-between; gap:var(--space-4); align-items:flex-end; margin-bottom: var(--space-6); }
+    .section-head p { margin: 0; }
+
+    /* BUTTONS */
+    .actions { display:flex; flex-wrap:wrap; gap:.75rem; margin-top: var(--space-5); }
+    .btn {
+      display:inline-flex; align-items:center; justify-content:center;
+      min-height: 44px; padding: .72rem 1.2rem;
+      border-radius: var(--radius-md);
+      text-decoration: none; font-weight: 600; font-size: var(--text-sm);
+      font-family: var(--font-body); letter-spacing: .01em;
+    }
+    .btn.primary { background: var(--accent); color: #fff; box-shadow: 0 8px 20px rgba(255,123,51,.20); }
+
+    /* KACHELN — three visually distinct roles */
+    .tile-variants-head { margin-bottom: var(--space-6); }
+    .tile-variants-grid { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--space-5); }
+    .variant-card { position:relative; border-radius: var(--radius-lg); padding: var(--space-6); }
+    .variant-card h3 { margin-bottom: .5rem; }
+    .variant-card p  { max-width: none; }
+    .variant-eyebrow {
+      display: inline-flex; margin-bottom: .8rem; padding: .35rem .7rem;
+      border-radius: 999px; font-size: var(--text-xs); font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em;
+      font-family: var(--font-body);
+    }
+
+    /* HEADING SCALE */
+    .heading-scale { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--space-4); }
+    .heading-sample { border-radius: var(--radius-lg); padding: var(--space-5); }
+    .heading-kicker { display:block; margin-bottom: .7rem; font-size: var(--text-xs); text-transform:uppercase; letter-spacing:.07em; font-weight:700; font-family: var(--font-body); }
+    .heading-sample h1, .heading-sample h2,
+    .heading-sample h3, .heading-sample h4 { margin-bottom:0; max-width: none; }
+
+    /* QUOTE */
+    .quote-layout { display:grid; grid-template-columns: 1.6fr 1fr; gap: var(--space-5); align-items:start; }
+    .inline-quote { margin: var(--space-5) 0; padding: .15rem 0 .15rem var(--space-5); border-left: 2px solid var(--accent-line); }
+    .inline-quote p { margin:0; max-width:34ch; font-size: clamp(1.05rem,.96rem + .4vw,1.35rem); line-height:1.54; font-family: var(--font-body); }
+    .inline-quote footer { margin-top:.7rem; font-size: var(--text-sm); font-family: var(--font-body); }
+
+    /* TOKENS */
+    .token-grid { display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: var(--space-4); }
+    .token-card { border-radius: var(--radius-lg); overflow:hidden; }
+    .token-swatch { min-height:116px; padding: var(--space-4); display:flex; align-items:flex-end; font-family: var(--font-display); font-size:.95rem; font-weight:700; }
+    .token-meta { padding: var(--space-4); }
+    .token-meta strong { display:block; margin-bottom:.2rem; }
+    .token-meta code { display:block; margin-bottom:.35rem; }
+    .token-meta p { font-size: var(--text-sm); margin-bottom:.7rem; }
+
+    /* TYPOGRAPHY SPECIMENS */
+    .type-grid { display:grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+    .specimen { border-radius: var(--radius-lg); padding: var(--space-6); }
+    .specimen .label { font-size: var(--text-xs); text-transform:uppercase; letter-spacing:.08em; font-weight:700; margin-bottom:.85rem; display:block; font-family: var(--font-body); }
+    .display-sample { font-family: var(--font-display); font-size: clamp(2rem,1.3rem + 2.2vw,3.8rem); line-height:1.08; font-weight:700; letter-spacing:-0.015em; }
+    .body-sample { font-family: var(--font-body); font-size: var(--text-base); }
+
+    /* UTILITY */
+    .utility-grid { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--space-4); }
+    .mini-card { border-radius: var(--radius-lg); padding: var(--space-5); }
+    .input { width:100%; min-height:44px; border-radius: var(--radius-md); padding:.72rem .95rem; font: inherit; }
+    .legend { display:grid; grid-template-columns: 1.2fr .8fr; gap: var(--space-5); }
+    table { width:100%; border-collapse:collapse; border-radius: var(--radius-lg); overflow:hidden; }
+    th, td { padding:.9rem 1rem; text-align:left; font-size: var(--text-sm); font-family: var(--font-body); }
+    .status-direct { font-weight:700; }
+    .status-derived { font-weight:700; }
+    .footer-note { font-size: var(--text-sm); margin-top:.9rem; }
+
+    /* COLOR WALL */
+    .color-wall { display:grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: var(--space-4); }
+    .color-tile { border-radius: var(--radius-lg); overflow:hidden; }
+    .color-face { min-height:132px; padding: var(--space-4); display:flex; align-items:flex-end; font-family: var(--font-display); font-weight:700; }
+    .color-info { padding: var(--space-4); display:grid; gap:.32rem; }
+    .color-info code { font-size:.88rem; }
+
+    /* RESPONSIVE */
+    @media (max-width:1100px) { .token-grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+    @media (max-width:980px) {
+      .hero, .stats, .type-grid, .legend, .quote-layout,
+      .heading-scale, .tile-variants-grid { grid-template-columns: 1fr; }
+      .utility-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    }
+    @media (max-width:760px) {
+      .token-grid, .color-wall { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .utility-grid { grid-template-columns: 1fr; }
+      .wrap { padding-inline: var(--space-4); }
+    }
+    @media (max-width:500px) { .token-grid, .color-wall { grid-template-columns: 1fr; } }
+
+
+    body { margin:0; font-family: var(--font-body); background: var(--paper2); color: var(--sz-text-body); }
+    h1,h2,h3,h4 { color: var(--sz-text-strong); }
+    p { color: var(--sz-text-body); }
+    .panel { background: var(--paper); border: 1px solid var(--sz-border-soft); border-radius: var(--radius-xl); padding: var(--space-8); box-shadow: var(--shadow-1); }
+    .panel.soft { background: var(--sz-warm-sand); border-color: var(--sz-border-mid); box-shadow: none; }
+    .panel.dark { background: var(--sz-dark-surface); color: var(--sz-ink-primary); border-color: var(--sz-border-dark); box-shadow: var(--shadow-dk); }
+    .panel.dark h1,.panel.dark h2,.panel.dark h3,.panel.dark h4 { color: var(--sz-ink-primary); }
+    .panel.dark p { color: var(--sz-ink-body); }
+    .hero { display:grid; grid-template-columns: 1.7fr 1fr; gap: var(--space-6); align-items:stretch; }
+    .btn.secondary { background: var(--sz-warm-sand); color: var(--sz-text-strong); box-shadow: 0 0 0 1px var(--sz-border-mid); }
+    .btn.ghost     { background: transparent; color: var(--sz-text-muted); box-shadow: 0 0 0 1px var(--sz-border-mid); }
+    .btn.positive  { background: rgba(104,142,38,.12); color: var(--green); box-shadow: 0 0 0 1px rgba(104,142,38,.22); }
+    .eyebrow { color: var(--sz-text-subtle); }
+
+    /* KACHELN LIGHT */
+    .variant-card h3 { color: var(--sz-text-strong); }
+    .variant-card p  { color: var(--sz-text-body); }
+    .variant-flat  {
+      background: var(--sz-warm-sand);
+      border: 1px solid var(--sz-border-mid);
+      box-shadow: none;
+    }
+    .variant-soft  {
+      background: var(--paper);
+      border: 1px solid var(--sz-border-soft);
+      box-shadow: var(--shadow-1);
+    }
+    .variant-accent {
+      background: var(--paper);
+      border: 1px solid transparent;
+      box-shadow: 0 0 0 1px var(--accent-line), var(--shadow-2);
+    }
+    .variant-eyebrow { background: var(--accent-subtle); box-shadow: inset 0 0 0 1px rgba(255,123,51,.16); color: #c05010; }
+
+    /* HEADING SCALE */
+    .heading-sample { background: var(--paper); border: 1px solid var(--sz-border-soft); box-shadow: var(--shadow-1); }
+    .heading-kicker { color: var(--sz-text-subtle); }
+    .heading-sample h1,.heading-sample h2,.heading-sample h3,.heading-sample h4 { color: var(--sz-text-strong); }
+
+    /* QUOTE */
+    .quote-panel { background: var(--paper); border: 1px solid var(--sz-border-soft); border-radius: var(--radius-lg); padding: var(--space-6); box-shadow: var(--shadow-1); }
+    .quote-note  { background: var(--sz-warm-sand); border: 1px solid var(--sz-border-mid); border-radius: var(--radius-lg); padding: var(--space-5); }
+    .inline-quote p      { color: var(--sz-text-strong); }
+    .inline-quote footer { color: var(--sz-text-subtle); }
+
+    /* MISC */
+    .token-card  { background: var(--paper); border: 1px solid var(--sz-border-soft); box-shadow: var(--shadow-1); }
+    .token-meta strong { color: var(--sz-text-strong); }
+    .token-meta code   { color: var(--sz-text-subtle); }
+    .token-meta p      { color: var(--sz-text-muted); }
+    .specimen    { background: var(--paper); border: 1px solid var(--sz-border-soft); }
+    .specimen .label { color: var(--sz-text-subtle); }
+    .mini-card   { background: var(--paper); border: 1px solid var(--sz-border-soft); }
+    .input       { background: var(--sz-warm-sand); border: 1px solid var(--sz-border-mid); color: var(--sz-text-strong); }
+    .input:focus-visible { outline: 2px solid var(--brightgreen); outline-offset:2px; border-color: var(--green); }
+    table        { background: var(--paper); border: 1px solid var(--sz-border-soft); }
+    th, td       { border-bottom: 1px solid var(--sz-border-soft); }
+    th           { background: var(--sz-warm-sand); color: var(--sz-text-strong); font-family: var(--font-display); }
+    td           { color: var(--sz-text-body); }
+    .footer-note { color: var(--sz-text-subtle); }
+    .color-tile  { background: var(--paper); border: 1px solid var(--sz-border-soft); box-shadow: var(--shadow-1); }
+    .color-info strong { color: var(--sz-text-strong); }
+    .color-info code   { color: var(--sz-text-subtle); }
+    .html-code         { color: var(--sz-text-muted); }
+    .section-head p    { color: var(--sz-text-body); }
+    .status-direct  { color: var(--green); }
+    .status-derived { color: var(--accent); }
+
+    .rule-note {
+      background: var(--paper);
+      border: 1px solid var(--sz-border-soft);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      box-shadow: var(--shadow-1);
+    }
+    .rule-note pre {
+      margin-top: var(--space-4);
+      background: var(--sz-warm-sand);
+      border: 1px solid var(--sz-border-mid);
+    }
+
+  
+    /* =============================================
+       V21 — Typographic spacing refinement
+       Principle: space *before* a heading signals
+       a new topic; space *after* binds it to its
+       content. Pill→H1 gap is proportional.
+    ============================================= */
+
+    /* --- Headings: after-margin proportional to size --- */
+    h1 { margin-bottom: clamp(.52rem, .34rem + .36vw, .78rem); }
+    h2 { margin-bottom: clamp(.44rem, .28rem + .28vw, .64rem); }
+    h3 { margin-bottom: .42rem; }
+    h4 { margin-bottom: .32rem; }
+
+    /* --- Eyebrow → heading: tighter than heading → body --- */
+    /* The eyebrow margin-bottom is already set; ensure no
+       additional margin-top on the following heading resets it */
+    .eyebrow + h1, .eyebrow + h2, .eyebrow + h3 { margin-top: 0; }
+
+    /* --- Body text after a heading: comfortable but not loose --- */
+    h1 + p, h2 + p, h3 + p, h4 + p { margin-top: .1rem; }
+
+    /* --- Paragraph rhythm inside panels / cards --- */
+    .panel p, .variant-card p, .quote-panel p,
+    .quote-note p, .heading-sample p { line-height: 1.68; }
+
+    /* --- Eyebrow pill: pill itself sits closer to H than to
+       its preceding context, achieved via bottom margin only --- */
+    
+    .variant-eyebrow {
+      margin-bottom: .7rem;
+    }
+    .heading-kicker {
+      margin-bottom: .6rem;
+    }
+
+    /* --- Section-head: heading-to-lead-text gap --- */
+    .section-head h2 + p { margin-top: .22rem; }
+
+    /* --- Quote: extra air above/below to let it breathe --- */
+    .inline-quote {
+      margin-top: clamp(1.1rem, .9rem + .5vw, 1.5rem);
+      margin-bottom: clamp(1.1rem, .9rem + .5vw, 1.5rem);
+    }
+    .inline-quote p { margin-bottom: 0; }
+    .inline-quote footer { margin-top: .6rem; }
+
+    /* --- Token / color card meta rhythm --- */
+    .token-meta strong { margin-bottom: .18rem; }
+    .token-meta code   { margin-bottom: .3rem; }
+    .token-meta p      { margin-bottom: .6rem; }
+
+    /* --- Table cell vertical padding --- */
+    th, td { padding: .82rem 1rem; }
+
+    /* --- Sections: larger gap between major sections,
+       tighter within a section group --- */
+    .section { margin-top: clamp(3rem, 2rem + 2.5vw, 5rem); }
+    
+  
+    /* SEMANTIC STATUS */
+    .status-banner { border-radius: var(--radius-lg); padding: var(--space-5) var(--space-6); display:flex; gap: var(--space-4); align-items:flex-start; }
+    .status-banner .status-icon { flex-shrink:0; width:1.35rem; height:1.35rem; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:.8rem; font-weight:900; line-height:1; margin-top:.12rem; }
+    .status-banner .status-body h4 { margin-bottom:.22rem; }
+    .status-banner .status-body p  { margin:0; font-size: var(--text-sm); }
+    .status-error   { background: var(--error-subtle);   border: 1px solid var(--error-line); }
+    .status-warning { background: var(--warning-subtle); border: 1px solid var(--warning-line); }
+    .status-success { background: var(--tag-lime-bg);    border: 1px solid rgba(104,142,38,.28); }
+    .status-error   .status-icon { background: var(--error);   color:#fff; }
+    .status-warning .status-icon { background: var(--warning);  color: #1d1514; }
+    .status-success .status-icon { background: var(--brightgreen); color: #1d1514; }
+    .status-error   h4 { color: #c01010; }
+    .status-warning h4 { color: #8a6000; }
+    .status-success h4 { color: var(--green); }
+    .status-grid { display:grid; grid-template-columns:1fr; gap: var(--space-4); }
+    
+  
+    /* ICONS — Google Material Symbols (variable font) */
+    .icon {
+      font-family: 'Material Symbols Rounded';
+      font-weight: normal; font-style: normal;
+      font-size: 1.25rem; line-height: 1;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+      user-select: none; flex-shrink: 0;
+    }
+    .icon-filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    .icon-lg { font-size: 1.6rem; }
+    .icon-sm { font-size: 1rem; }
+
+    /* ICON GRID */
+    .icon-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(96px,1fr)); gap: var(--space-4); }
+    .icon-tile { border-radius: var(--radius-md); padding: var(--space-4); display:flex; flex-direction:column; align-items:center; gap:.55rem; }
+    .icon-tile .icon { font-size: 1.7rem; }
+    .icon-tile span:last-child { font-size: var(--text-xs); text-align:center; line-height:1.3; font-family: var(--font-mono); }
+
+    /* UI SITUATIONS */
+    .ui-grid { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--space-5); }
+    .ui-card { border-radius: var(--radius-lg); padding: var(--space-5); }
+    .ui-card-title { font-family: var(--font-display); font-size: var(--text-sm); font-weight:700; letter-spacing:-.01em; margin-bottom: var(--space-4); }
+
+    /* Search bar */
+    .search-bar { display:flex; align-items:center; gap:.6rem; border-radius: var(--radius-md); padding:.65rem .9rem; }
+    .search-bar input { border:none; background:none; flex:1; font: inherit; font-size: var(--text-sm); outline:none; }
+
+    /* List item row */
+    .list-item { display:flex; align-items:center; gap:.8rem; padding:.7rem .2rem; border-bottom-width:1px; border-bottom-style:solid; }
+    .list-item:last-child { border-bottom:none; }
+    .list-avatar { width:2.2rem; height:2.2rem; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:.85rem; font-weight:700; }
+    .list-label { flex:1; font-size: var(--text-sm); font-weight:500; }
+    .list-meta  { font-size: var(--text-xs); }
+
+    /* Toolbar row */
+    .toolbar { display:flex; align-items:center; gap:.5rem; padding:.5rem .2rem; }
+    .toolbar-title { flex:1; font-size: var(--text-sm); font-weight:600; }
+    .icon-btn { border:none; background:none; cursor:pointer; border-radius: var(--radius-md); padding:.42rem; display:inline-flex; align-items:center; justify-content:center; transition: background .12s; }
+
+    /* Form row */
+    .form-field { display:flex; flex-direction:column; gap:.35rem; margin-bottom: var(--space-4); }
+    .form-label { font-size: var(--text-xs); font-weight:600; letter-spacing:.04em; text-transform:uppercase; }
+    .input-wrap { position:relative; display:flex; align-items:center; }
+    .input-wrap .icon { position:absolute; left:.75rem; pointer-events:none; }
+    .input-wrap input { width:100%; border-radius: var(--radius-md); padding:.72rem .9rem .72rem 2.4rem; font:inherit; font-size: var(--text-sm); border-width:1px; border-style:solid; }
+
+    /* Notification badge */
+    .notif-row { display:flex; align-items:flex-start; gap:.8rem; padding:.75rem 0; border-bottom-width:1px; border-bottom-style:solid; }
+    .notif-row:last-child { border-bottom:none; }
+    .notif-icon-wrap { position:relative; flex-shrink:0; }
+    .notif-dot { position:absolute; top:0; right:0; width:.55rem; height:.55rem; border-radius:50%; }
+    .notif-body { flex:1; }
+    .notif-body strong { font-size: var(--text-sm); font-weight:600; display:block; margin-bottom:.18rem; }
+    .notif-body p { font-size: var(--text-xs); margin:0; line-height:1.5; }
+    .notif-time { font-size: var(--text-xs); flex-shrink:0; margin-top:.15rem; }
+
+    @media (max-width:760px) { .ui-grid { grid-template-columns: 1fr; } }
+
+  
+
+    pre {
+      background: var(--sz-warm-sand);
+      border: 1px solid var(--sz-border-mid);
+      border-radius: var(--radius-md);
+      padding: var(--space-5);
+      overflow-x: auto;
+      margin: 0;
+    }
+    pre code { font-size: var(--text-sm); line-height: 1.8; }
+    #theme-toggle {
+      background: var(--paper);
+      color: var(--sz-text-strong);
+      border: 1px solid var(--sz-border-mid);
+      transition: background .2s, color .2s;
+    }
+    .icon-tile.panel { background: var(--paper); border: 1px solid var(--sz-border-soft); }
+    .icon-tile span:last-child { color: var(--sz-text-subtle); }
+    ul { padding-left: 1.2rem; margin: 0; }
+    ul li { margin-bottom: .2rem; }
+
+
+    [data-theme="dark"] body { background: var(--darksiena); color: var(--sz-ink-body); }
+    [data-theme="dark"] h1,[data-theme="dark"] h2,[data-theme="dark"] h3,[data-theme="dark"] h4 { color: var(--sz-ink-primary); }
+    [data-theme="dark"] p { color: var(--sz-ink-body); }
+    [data-theme="dark"] .panel { background: var(--sz-dark-surface); border-color: var(--sz-border-dark); box-shadow: var(--shadow-dk); }
+    [data-theme="dark"] .panel.soft { background: rgba(255,255,255,.03); border-color: rgba(255,255,255,.07); }
+    [data-theme="dark"] .panel h1,[data-theme="dark"] .panel h2,[data-theme="dark"] .panel h3,[data-theme="dark"] .panel h4 { color: var(--sz-ink-primary); }
+    [data-theme="dark"] .panel p { color: var(--sz-ink-body); }
+    [data-theme="dark"] .btn.secondary { background: rgba(255,255,255,.05); color: var(--sz-ink-body); box-shadow: 0 0 0 1px var(--sz-border-dark); }
+    [data-theme="dark"] .btn.ghost     { background: transparent; color: var(--sz-ink-muted); box-shadow: 0 0 0 1px rgba(255,255,255,.08); }
+    [data-theme="dark"] .btn.positive  { background: var(--tag-lime-bg-dk); color: var(--tag-lime-fg-dk); box-shadow: 0 0 0 1px rgba(152,206,0,.20); }
+    [data-theme="dark"] .eyebrow { color: var(--sz-ink-muted); }
+    [data-theme="dark"] .variant-card h3 { color: var(--sz-ink-primary); }
+    [data-theme="dark"] .variant-card p  { color: var(--sz-ink-body); }
+    [data-theme="dark"] .variant-flat  { background: rgba(255,255,255,.025); border-color: rgba(255,255,255,.07); box-shadow: none; }
+    [data-theme="dark"] .variant-soft  { background: var(--sz-dark-surface); border-color: var(--sz-border-dark); box-shadow: var(--shadow-dk); }
+    [data-theme="dark"] .variant-accent { border-color: transparent; box-shadow: 0 0 0 1px var(--accent-line), var(--shadow-dk2); }
+    [data-theme="dark"] .variant-eyebrow { background: rgba(255,123,51,.12); box-shadow: inset 0 0 0 1px rgba(255,123,51,.20); color: var(--sz-ink-body); }
+    [data-theme="dark"] .heading-sample { background: var(--sz-dark-surface); border-color: var(--sz-border-dark); }
+    [data-theme="dark"] .heading-kicker { color: var(--sz-ink-muted); }
+    [data-theme="dark"] .heading-sample h1,[data-theme="dark"] .heading-sample h2,
+    [data-theme="dark"] .heading-sample h3,[data-theme="dark"] .heading-sample h4 { color: var(--sz-ink-primary); }
+    [data-theme="dark"] .quote-panel { background: var(--sz-dark-surface); border-color: var(--sz-border-dark); }
+    [data-theme="dark"] .quote-note  { background: rgba(255,255,255,.025); border-color: rgba(255,255,255,.07); }
+    [data-theme="dark"] .inline-quote p      { color: var(--sz-ink-primary); }
+    [data-theme="dark"] .inline-quote footer { color: var(--sz-ink-muted); }
+    [data-theme="dark"] .token-card  { background: var(--sz-dark-surface); border-color: var(--sz-border-dark); }
+    [data-theme="dark"] .token-meta strong { color: var(--sz-ink-primary); }
+    [data-theme="dark"] .token-meta code   { color: var(--sz-ink-muted); }
+    [data-theme="dark"] .token-meta p      { color: var(--sz-ink-body); }
+    [data-theme="dark"] .specimen    { background: var(--sz-dark-surface); border-color: var(--sz-border-dark); }
+    [data-theme="dark"] .specimen .label { color: var(--sz-ink-muted); }
+    [data-theme="dark"] .mini-card   { background: var(--sz-dark-surface); border-color: var(--sz-border-dark); }
+    [data-theme="dark"] .input       { background: rgba(255,255,255,.04); border-color: var(--sz-border-dark); color: var(--sz-ink-primary); }
+    [data-theme="dark"] table        { background: var(--sz-dark-surface); border-color: var(--sz-border-dark); }
+    [data-theme="dark"] th,
+    [data-theme="dark"] td           { border-bottom-color: var(--sz-border-dark); }
+    [data-theme="dark"] th           { background: rgba(255,255,255,.04); color: var(--sz-ink-primary); }
+    [data-theme="dark"] td           { color: var(--sz-ink-body); }
+    [data-theme="dark"] .footer-note { color: var(--sz-ink-muted); }
+    [data-theme="dark"] .color-tile  { background: var(--sz-dark-surface); border-color: var(--sz-border-dark); }
+    [data-theme="dark"] .color-info strong { color: var(--sz-ink-primary); }
+    [data-theme="dark"] .color-info code   { color: var(--sz-ink-muted); }
+    [data-theme="dark"] .section-head p    { color: var(--sz-ink-body); }
+    [data-theme="dark"] .status-direct  { color: var(--brightgreen); }
+    [data-theme="dark"] .status-derived { color: var(--accent); }
+    [data-theme="dark"] .icon-tile { background: var(--sz-dark-surface); border-color: var(--sz-border-dark); }
+    [data-theme="dark"] .icon-tile span:last-child { color: var(--sz-ink-muted); }
+    [data-theme="dark"] .ui-card    { background: var(--sz-dark-surface); border-color: var(--sz-border-dark); }
+    [data-theme="dark"] .ui-card-title { color: var(--sz-ink-primary); }
+    [data-theme="dark"] .search-bar { background: rgba(255,255,255,.04) !important; border-color: var(--sz-border-dark) !important; }
+    [data-theme="dark"] .search-bar input { color: var(--sz-ink-primary) !important; }
+    [data-theme="dark"] .list-item  { border-color: var(--sz-border-dark) !important; }
+    [data-theme="dark"] .list-label { color: var(--sz-ink-primary) !important; }
+    [data-theme="dark"] .list-meta  { color: var(--sz-ink-muted) !important; }
+    [data-theme="dark"] .toolbar    { border-color: var(--sz-border-dark) !important; }
+    [data-theme="dark"] .toolbar-title { color: var(--sz-ink-primary) !important; }
+    [data-theme="dark"] .icon-btn   { color: var(--sz-ink-muted) !important; }
+    [data-theme="dark"] .input-wrap input { background: rgba(255,255,255,.04) !important; border-color: var(--sz-border-dark) !important; color: var(--sz-ink-primary) !important; }
+    [data-theme="dark"] .notif-row  { border-color: var(--sz-border-dark) !important; }
+    [data-theme="dark"] .notif-body strong { color: var(--sz-ink-primary) !important; }
+    [data-theme="dark"] .notif-body p      { color: var(--sz-ink-muted) !important; }
+    [data-theme="dark"] .notif-time        { color: var(--sz-ink-muted) !important; }
+    [data-theme="dark"] .status-error   { background: rgba(255,51,51,.08); border-color: rgba(255,51,51,.30); }
+    [data-theme="dark"] .status-warning { background: rgba(253,203,52,.08); border-color: rgba(253,203,52,.35); }
+    [data-theme="dark"] .status-success { background: var(--tag-lime-bg-dk); border-color: rgba(152,206,0,.22); }
+    [data-theme="dark"] .status-error   h4 { color: #ff7070; }
+    [data-theme="dark"] .status-warning h4 { color: var(--warning); }
+    [data-theme="dark"] .status-success h4 { color: var(--brightgreen); }
+    [data-theme="dark"] .status-banner .status-body p { color: var(--sz-ink-body); }
+    [data-theme="dark"] pre { background: rgba(255,255,255,.04) !important; border-color: var(--sz-border-dark) !important; color: var(--sz-ink-body) !important; }
+    [data-theme="dark"] .icon-tile.panel  { background: var(--sz-dark-surface) !important; border-color: var(--sz-border-dark) !important; }
+    [data-theme="dark"] #theme-toggle { background: var(--sz-dark-surface); color: var(--sz-ink-primary); border: 1px solid var(--sz-border-dark); }
+
+  </style>
+</head>
+<body>
+    <div style="position:fixed; top:1.2rem; right:1.5rem; z-index:999; display:flex; align-items:center; gap:.6rem;">
+      <span class="icon" id="theme-icon" style="font-size:1.2rem;"></span>
+      <button id="theme-toggle" onclick="
+        const html = document.documentElement;
+        const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        html.setAttribute('data-theme', next);
+        localStorage.setItem('sz-theme', next);
+        document.getElementById('theme-icon').textContent = next === 'dark' ? 'dark_mode' : 'light_mode';
+      " style="
+        border:none; cursor:pointer; border-radius:999px;
+        padding:.45rem 1rem; font-family:var(--font-body);
+        font-size:var(--text-xs); font-weight:600; letter-spacing:.04em;
+      ">Theme</button>
+    </div>
+    <script>
+      document.getElementById('theme-icon').textContent =
+        document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark_mode' : 'light_mode';
+    </script>
+
+    <div class="wrap">
+<main class="wrap">
+    <section class="hero">
+      <div class="panel">
+        <span class="eyebrow">SZ Cloud AI · Design System</span>
+        <h1>Wärme, Klarheit und funktionale Eleganz in jedem Layout.</h1>
+        <p>Dieses Designsystem definiert verbindliche Grundlagen für alle Oberflächen: Farben, Typografie, Abstände, Icons und Komponentenlogik.</p>
+        <div class="actions">
+          <a class="btn primary" href="#principles">Designprinzipien</a>
+          <a class="btn secondary" href="#tokens">Farb-Tokens</a>
+          <a class="btn ghost" href="#icons">Icons</a>
+        </div>
+      </div>
+      <div class="panel soft">
+        <h2>Dieses Dokument ist verbindlich</h2>
+        <p>Alle Layouts, Screens und Komponenten, die auf dieser Basis entstehen, halten sich an die hier definierten Token, Abstände und Regeln. Abweichungen bedürfen einer begründeten Ausnahme und müssen dokumentiert werden.</p>
+      </div>
+    </section>
+
+
+
+    <section class="section" id="contrast-rules">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Barrierefreiheit</span>
+          <h2>Farb- und Schriftkontrast</h2>
+          <p>Jede Farbkombination im System erfüllt mindestens WCAG AA (Kontrastverhältnis ≥ 4.5:1 für normalen Text). Die nachfolgenden Regeln sind verbindlich.</p>
+        </div>
+      </div>
+      <div class="rule-note" style="margin-bottom:var(--space-5);">
+        <h3>Diese Kombination ist im HTML verbindlich hinterlegt</h3>
+        <p>Die von dir festgelegte Zuordnung steht in dieser Referenzdatei direkt als Root-Variablen und als Textregel im CSS: <strong>dunkler Text ist immer SZ Deep Sienna</strong> auf hellen Flächen, und <strong>heller Text ist immer SZ Soft Paper</strong> auf dunklen Flächen.</p>
+        <pre><code>:root {
+  --sz-deep-sienna: #1d1514;
+  --sz-soft-paper:  #fffdf9;
+  --sz-text-strong: var(--sz-deep-sienna);
+  --sz-ink-primary: var(--sz-soft-paper);
+}</code></pre>
+      </div>
+      <div class="ui-grid">
+
+        <div class="panel">
+          <h3>Auf dunklen Flächen</h3>
+          <p>Auf allen Flächen mit <code>--sz-deep-sienna</code>, <code>--sz-cocoa-surface</code> oder ähnlich dunklen Hintergründen (Luminanz &lt; 0.18) wird ausschliesslich heller Text eingesetzt.</p>
+          <div style="margin-top:var(--space-4); display:flex; flex-direction:column; gap:var(--space-3);">
+            <div style="background:var(--sz-deep-sienna); color:var(--sz-soft-paper); border-radius:var(--radius-md); padding:var(--space-4);">
+              <strong style="font-size:var(--text-sm);">SZ Deep Sienna · #1d1514</strong><br>
+              <span style="font-size:var(--text-xs); opacity:.76;">Textfarbe: #fffdf9 · Kontrast 17.7:1</span>
+            </div>
+            <div style="background:var(--sz-cocoa-surface); color:var(--sz-soft-paper); border-radius:var(--radius-md); padding:var(--space-4);">
+              <strong style="font-size:var(--text-sm);">SZ Cocoa Surface · #33282a</strong><br>
+              <span style="font-size:var(--text-xs); opacity:.76;">Textfarbe: #fffdf9 · Kontrast 14.0:1</span>
+            </div>
+            <div style="background:var(--sz-roasted-umber); color:var(--sz-soft-paper); border-radius:var(--radius-md); padding:var(--space-4);">
+              <strong style="font-size:var(--text-sm);">SZ Roasted Umber · #403738</strong><br>
+              <span style="font-size:var(--text-xs); opacity:.76;">Textfarbe: #fffdf9 · Kontrast 11.3:1</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Auf hellen Flächen</h3>
+          <p>Auf allen Flächen mit <code>--sz-soft-paper</code>, <code>--sz-linen-sand</code> oder ähnlich hellen Hintergründen wird ausschliesslich dunkler Text eingesetzt.</p>
+          <div style="margin-top:var(--space-4); display:flex; flex-direction:column; gap:var(--space-3);">
+            <div style="background:var(--sz-soft-paper); color:var(--sz-deep-sienna); border:1px solid var(--sz-border-mid); border-radius:var(--radius-md); padding:var(--space-4);">
+              <strong style="font-size:var(--text-sm);">SZ Soft Paper · #fffdf9</strong><br>
+              <span style="font-size:var(--text-xs); color:var(--sz-text-muted);">Textfarbe: #1d1514 · Kontrast 17.7:1</span>
+            </div>
+            <div style="background:var(--sz-linen-sand); color:var(--sz-deep-sienna); border-radius:var(--radius-md); padding:var(--space-4);">
+              <strong style="font-size:var(--text-sm);">SZ Linen Sand · #efe8de</strong><br>
+              <span style="font-size:var(--text-xs); color:var(--sz-text-muted);">Textfarbe: #1d1514 · Kontrast 14.8:1</span>
+            </div>
+            <div style="background:var(--sz-oat-silver); color:var(--sz-deep-sienna); border-radius:var(--radius-md); padding:var(--space-4);">
+              <strong style="font-size:var(--text-sm);">SZ Oat Silver · #e6ded5</strong><br>
+              <span style="font-size:var(--text-xs); color:var(--sz-text-muted);">Textfarbe: #1d1514 · Kontrast 13.5:1</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Auf Akzentfarben</h3>
+          <p>Orange, Lime, Rot und Gelb haben je nach Luminanz unterschiedliche Textvorgaben. Immer die unten angegebene Kombination verwenden.</p>
+          <div style="margin-top:var(--space-4); display:flex; flex-direction:column; gap:var(--space-3);">
+            <div style="background:#ff7b33; color:#1d1514; border-radius:var(--radius-md); padding:var(--space-4);">
+              <strong style="font-size:var(--text-sm);">SZ Ember Orange · #ff7b33</strong><br>
+              <span style="font-size:var(--text-xs); opacity:.65;">Textfarbe: #1d1514 · Kontrast 6.4:1 ✓</span>
+            </div>
+            <div style="background:#98ce00; color:#1d1514; border-radius:var(--radius-md); padding:var(--space-4);">
+              <strong style="font-size:var(--text-sm);">SZ Signal Lime · #98ce00</strong><br>
+              <span style="font-size:var(--text-xs); opacity:.65;">Textfarbe: #1d1514 · Kontrast 8.7:1 ✓</span>
+            </div>
+            <div style="background:#ff3333; color:#1d1514; border-radius:var(--radius-md); padding:var(--space-4);">
+              <strong style="font-size:var(--text-sm);">SZ Alert Red · #ff3333</strong><br>
+              <span style="font-size:var(--text-xs); opacity:.65;">Textfarbe: #1d1514 · Kontrast 4.5:1 ✓</span>
+            </div>
+            <div style="background:#fdcb34; color:#1d1514; border-radius:var(--radius-md); padding:var(--space-4);">
+              <strong style="font-size:var(--text-sm);">SZ Sun Yellow · #fdcb34</strong><br>
+              <span style="font-size:var(--text-xs); opacity:.65;">Textfarbe: #1d1514 · Kontrast 10.8:1 ✓</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Verbotene Kombinationen</h3>
+          <p>Diese Kombinationen dürfen im System nicht verwendet werden, da sie das WCAG-AA-Minimum unterschreiten.</p>
+          <div style="margin-top:var(--space-4); display:flex; flex-direction:column; gap:var(--space-3);">
+            <div style="background:#ff7b33; color:#fffdf9; border-radius:var(--radius-md); padding:var(--space-4); position:relative;">
+              <strong style="font-size:var(--text-sm);">Orange mit hellem Text</strong><br>
+              <span style="font-size:var(--text-xs); opacity:.8;">Kontrast nur ~2.3:1 — nicht erlaubt ✗</span>
+            </div>
+            <div style="background:#fffdf9; color:#9e9392; border:1px solid #e2cfca; border-radius:var(--radius-md); padding:var(--space-4);">
+              <strong style="font-size:var(--text-sm);">Muted-Text auf hellem Hintergrund</strong><br>
+              <span style="font-size:var(--text-xs);">Nur als sekundärer UI-Text ≥ 18px oder 14px bold erlaubt</span>
+            </div>
+            <div style="background:#98ce00; color:#fffdf9; border-radius:var(--radius-md); padding:var(--space-4);">
+              <strong style="font-size:var(--text-sm);">Lime mit hellem Text</strong><br>
+              <span style="font-size:var(--text-xs); opacity:.8;">Kontrast nur ~1.9:1 — nicht erlaubt ✗</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section" id="principles">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Verbindliche Grundlagen</span>
+          <h2>Designprinzipien</h2>
+          <p>Diese Prinzipien gelten für alle Oberflächen, die auf diesem System basieren. Sie sind nicht optional.</p>
+        </div>
+      </div>
+      <div class="ui-grid">
+
+        <div class="panel">
+          <span class="icon icon-lg" style="color:var(--accent); margin-bottom:.9rem; display:block;">palette</span>
+          <h3>Farbe ist funktional, nicht dekorativ</h3>
+          <p>Jede Farbe hat eine klar definierte Rolle. Orange ist ausschliesslich dem primären CTA vorbehalten. Lime signalisiert positive Zustände. Rot steht für Fehler, Gelb für Warnungen. Keine dieser Farben wird aus ästhetischen Gründen eingesetzt.</p>
+        </div>
+
+        <div class="panel">
+          <span class="icon icon-lg" style="color:var(--accent); margin-bottom:.9rem; display:block;">text_fields</span>
+          <h3>Typografie folgt einer klaren Hierarchie</h3>
+          <p>Fira Sans führt als Display-Schrift alle Überschriften. Plus Jakarta Sans trägt den gesamten Fliesstext, Labels und UI-Beschriftungen. Fira Code wird ausschliesslich für Code und technische Werte verwendet. Diese Rollen sind nicht austauschbar.</p>
+        </div>
+
+        <div class="panel">
+          <span class="icon icon-lg" style="color:var(--accent); margin-bottom:.9rem; display:block;">space_bar</span>
+          <h3>Abstände kommen aus dem Token-System</h3>
+          <p>Alle Innen- und Aussenabstände werden ausschliesslich über die definierten Spacing-Tokens gesetzt. Keine manuell gesetzten Pixel-Werte. Der Basis-Abstand ist 4px, die Skala läuft in Stufen von <code>--space-4</code> bis <code>--space-16</code>.</p>
+        </div>
+
+        <div class="panel">
+          <span class="icon icon-lg" style="color:var(--accent); margin-bottom:.9rem; display:block;">layers</span>
+          <h3>Elevation durch Schatten, nicht durch Farbe</h3>
+          <p>Tiefe und Hierarchie entstehen ausschliesslich durch Schatten (<code>--shadow-1</code>, <code>--shadow-2</code>). Hintergrundfarben dürfen nicht zur Tiefendarstellung eingesetzt werden. Die Akzentlinie an hervorgehobenen Kacheln ist eine Ausnahme mit genau einer definierten Anwendung.</p>
+        </div>
+
+        <div class="panel">
+          <span class="icon icon-lg" style="color:var(--accent); margin-bottom:.9rem; display:block;">grid_view</span>
+          <h3>Icons ausschliesslich aus Material Symbols</h3>
+          <p>Alle Icons kommen aus Google Material Symbols Rounded. Keine SVGs aus anderen Sets, keine Emoji-Substitution. Gewicht und Fill-Grad werden per <code>font-variation-settings</code> gesteuert. Semantische Statusicons erhalten die jeweilige Systemfarbe.</p>
+        </div>
+
+        <div class="panel">
+          <span class="icon icon-lg" style="color:var(--accent); margin-bottom:.9rem; display:block;">brightness_6</span>
+          <h3>Light und Dark sind gleichwertig</h3>
+          <p>Beide Modi sind vollständig ausgearbeitet und teilen dieselbe Token-Basis. Kein Layout darf nur für einen Modus entworfen werden. Dark-Oberflächen nutzen ausschliesslich <code>sz-ink-*</code> Texttokens; Light-Oberflächen ausschliesslich <code>sz-text-*</code>.</p>
+        </div>
+
+        <div class="panel">
+          <span class="icon icon-lg" style="color:var(--accent); margin-bottom:.9rem; display:block;">rounded_corner</span>
+          <h3>Radien sind kontextabhängig</h3>
+          <p>Panels und grosse Container verwenden <code>--radius-xl</code>. Standard-Kacheln und Karten verwenden <code>--radius-lg</code>. Buttons und Eingabefelder verwenden <code>--radius-md</code>. Kleinere Elemente wie Tags nutzen <code>999px</code> für vollständig runde Formen.</p>
+        </div>
+
+        <div class="panel">
+          <span class="icon icon-lg" style="color:var(--accent); margin-bottom:.9rem; display:block;">accessibility</span>
+          <h3>Kontrast und Grösse sind Pflicht</h3>
+          <p>Alle interaktiven Elemente haben eine Mindest-Touch-Target-Grösse von 44×44px. Texte auf farbigen Flächen müssen WCAG AA erfüllen. Eingabefelder haben immer einen sichtbaren Fokus-Ring in <code>--brightgreen</code> mit 2px Outline und 2px Offset.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section" id="typography">
+      <div class="section-head">
+        <div>
+          <h2>Typography specimen</h2>
+          <p>Fira Sans für Headings, Plus Jakarta Sans für Body, Controls und UI-Details.</p>
+        </div>
+      </div>
+      <div class="type-grid">
+        <article class="specimen">
+          <div class="label">Display font · Fira Sans</div>
+          <div class="display-sample">SZ Cloud Interfaces with confident editorial structure.</div>
+        </article>
+        <article class="specimen">
+          <div class="label">Body font · Plus Jakarta Sans</div>
+          <p class="body-sample">Plus Jakarta Sans sorgt im Fließtext und in UI-Elementen für warme, klare Lesbarkeit, auch in kleinen Größen. Dadurch bleibt die Oberfläche freundlicher und technischer zugleich, ohne an Wärme zu verlieren.</p>
+          <p class="body-sample"><strong>Button</strong> · Navigation · Form labels · Helper text · Table content</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="tokens">
+      <div class="section-head">
+        <div>
+          <h2>Complete token gallery</h2>
+          <p>Alle direkten und abgeleiteten Farbtokens mit Root-Variablen, damit die spätere Design-Implementierung hier bereits direkt vorgeführt wird.</p>
+          <p><strong>Update:</strong> Dunkler Schriftton = SZ Deep Sienna · heller Schriftton = SZ Soft Paper.</p>
+        </div>
+      </div>
+      <div class="token-grid">
+        <article class="token-card">
+          <div class="token-swatch" style="background:#1d1514;color:#fffdf9">
+            <span>SZ Deep Sienna</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Deep Sienna</strong>
+            <code>--sz-deep-sienna / --darksiena · #1d1514</code>
+            <p>Primary dark text, deepest canvas, dark theme anchor</p>
+          </div>
+        </article>
+
+
+<article class="token-card">
+          <div class="token-swatch" style="background:#688e26;color:#1d1514">
+            <span>SZ Moss Green</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Moss Green</strong>
+            <code>--sz-moss-green / --green · #688e26</code>
+            <p>Success support, calm positive accents</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#98ce00;color:#1d1514">
+            <span>SZ Signal Lime</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Signal Lime</strong>
+            <code>--sz-signal-lime / --brightgreen · #98ce00</code>
+            <p>High-visibility positive state and bright accent</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#ff7b33;color:#1d1514">
+            <span>SZ Ember Orange</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Ember Orange</strong>
+            <code>--sz-ember-orange / --accent · #ff7b33</code>
+            <p>Primary brand accent and CTA color</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#fffdf9;color:#1d1514">
+            <span>SZ Soft Paper</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Soft Paper</strong>
+            <code>--sz-soft-paper / --paper · #fffdf9</code>
+            <p>Primary light surface and card background</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#fff6ef;color:#1d1514">
+            <span>SZ Warm Canvas</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Warm Canvas</strong>
+            <code>--sz-warm-canvas / --paper2 · #fff6ef</code>
+            <p>Main page background, slightly warmer than SZ Soft Paper</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#ff3333;color:#1d1514">
+            <span>SZ Alert Red</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Alert Red</strong>
+            <code>--sz-alert-red / --error · #ff3333</code>
+            <p>Error, destructive, and critical states</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#fdcb34;color:#1d1514">
+            <span>SZ Sun Yellow</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Sun Yellow</strong>
+            <code>--sz-sun-yellow / --warning · #fdcb34</code>
+            <p>Warning, caution, and warm highlight states</p>
+          </div>
+        </article>
+
+
+
+<article class="token-card">
+          <div class="token-swatch" style="background:#efe8de;color:#1d1514">
+            <span>SZ Linen Sand</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Linen Sand</strong>
+            <code>--sz-linen-sand / --sz-warm-sand · #efe8de</code>
+            <p>Elevated light UI surface</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#33282a;color:#fffdf9">
+            <span>SZ Cocoa Surface</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Cocoa Surface</strong>
+            <code>--sz-cocoa-surface / --sz-dark-surface · #33282a</code>
+            <p>Primary dark container surface</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#403738;color:#fffdf9">
+            <span>SZ Roasted Umber</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Roasted Umber</strong>
+            <code>--sz-roasted-umber · #403738</code>
+            <p>Reduced-red dark support tone</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#5c3f34;color:#fffdf9">
+            <span>SZ Walnut Text</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Walnut Text</strong>
+            <code>--sz-walnut-text / --sz-text-secondary · #5c3f34</code>
+            <p>Secondary body text</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#9e9392;color:#1d1514">
+            <span>SZ Misted Taupe</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Misted Taupe</strong>
+            <code>--sz-misted-taupe / --sz-text-tertiary · #9e9392</code>
+            <p>Metadata and tertiary text</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#e6ded5;color:#1d1514">
+            <span>SZ Oat Silver</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Oat Silver</strong>
+            <code>--sz-oat-silver · #e6ded5</code>
+            <p>Soft neutral light support tone</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#f9ecdf;color:#1d1514">
+            <span>SZ Veil Border</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Veil Border</strong>
+            <code>--sz-veil-border · #f9ecdf</code>
+            <p>Subtle light border</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#f5e4d4;color:#1d1514">
+            <span>SZ Parchment Border</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Parchment Border</strong>
+            <code>--sz-parchment-border / --sz-border-strong · #f5e4d4</code>
+            <p>Prominent light border</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#403738;color:#fffdf9">
+            <span>SZ Ember Shadow Border</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Ember Shadow Border</strong>
+            <code>--sz-border-dark · #403738</code>
+            <p>Dark-mode border and divider</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#f1e1d0;color:#1d1514">
+            <span>SZ Halo Sand</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Halo Sand</strong>
+            <code>--sz-halo-sand / --sz-ring-soft · #f1e1d0</code>
+            <p>Default ring and hover outline</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#feedba;color:#1d1514">
+            <span>SZ Halo Sun</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Halo Sun</strong>
+            <code>--sz-halo-sun / --sz-ring-sun · #feedba</code>
+            <p>Warm highlight ring</p>
+          </div>
+        </article>
+<article class="token-card">
+          <div class="token-swatch" style="background:#ecd6be;color:#1d1514">
+            <span>SZ Halo Amber</span>
+          </div>
+          <div class="token-meta">
+            <strong>SZ Halo Amber</strong>
+            <code>--sz-halo-amber / --sz-ring-deep · #ecd6be</code>
+            <p>Pressed and active ring tone</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="states">
+      <div class="section-head">
+        <div>
+          <h2>Component states</h2>
+          <p>Positive Zustände verwenden jetzt wahlweise SZ Moss Green oder das deutlich sichtbarere SZ Signal Lime.</p>
+        </div>
+      </div>
+      <div class="utility-grid">
+        <article class="mini-card">
+          <h3>Input with focus</h3>
+          <input class="input" value="Focus via SZ Focus Cyan" aria-label="Example input" />
+        </article>
+        <article class="mini-card">
+          <h3>Semantic chips</h3>
+          <div class="actions">
+            <span class="pill" style="background: rgba(104,142,38,.14); color: var(--green);">Aktiv</span>
+            <span class="pill" style="background: rgba(152,206,0,.2); color: var(--darksiena);">Success · SZ Signal Lime</span>
+            <span class="pill" style="background: rgba(255,51,51,.12); color: #ff3333;">Error</span>
+            <span class="pill" style="background: rgba(253,203,52,.18); color: var(--darksiena);">Warning</span>
+          </div>
+        </article>
+        <article class="mini-card">
+          <h3>Dark preview card</h3>
+          <div class="panel dark" style="padding:1.25rem; margin-top:.3rem; border-radius:1rem;">
+            <p>Dark surfaces use SZ Cocoa Surface, SZ Soft Paper text, and SZ Ember Shadow Border.</p>
+          </div>
+        </article>
+      </div>
+    </section>
+  
+
+    <section class="section" id="kachelbeispiele">
+      <div class="section-head tile-variants-head">
+        <div>
+          <h2>Kachelbeispiele</h2>
+          <p>Drei klar unterscheidbare Kachelvarianten: ruhig zurückhaltend, sanft angehoben und hervorgehoben mit feiner Akzentlinie am äußeren Rand.</p>
+        </div>
+      </div>
+      <div class="tile-variants-grid">
+        <article class="variant-card variant-flat">
+          <span class="variant-eyebrow">Ohne Schatten</span>
+          <h3>Ruhige Basiskachel</h3>
+          <p>Diese Variante bleibt bewusst zurückhaltend und trennt sich nur über Fläche, Radius und eine feine Kontur vom Hintergrund.</p>
+        </article>
+        <article class="variant-card variant-soft">
+          <span class="variant-eyebrow">Standard</span>
+          <h3>Kachel mit Standardschatten</h3>
+          <p>Hier bleibt der bestehende weiche Schattencharakter erhalten. Die Karte wirkt angehoben, ohne lauter oder dekorativer zu werden.</p>
+        </article>
+        <article class="variant-card variant-accent">
+          <span class="variant-eyebrow">Hervorgehoben</span>
+          <h3>Vorgehobene Akzentkachel</h3>
+          <p>Diese Variante sitzt sichtbar weiter vorne und bekommt zusätzlich nur eine einzelne Haarlinie in der Akzentfarbe direkt am äußeren Rand.</p>
+        </article>
+      </div>
+    </section>
+
+
+    <section class="section" id="heading-scale">
+      <div class="section-head">
+        <div>
+          <h2>Überschriftengrößen</h2>
+          <p>Alle Headline-Stufen im direkten Vergleich, damit Größe, Rhythmus und Zeilenfall im System auf einen Blick beurteilt werden können.</p>
+        </div>
+      </div>
+      <div class="heading-scale">
+        <article class="heading-sample">
+          <span class="heading-kicker">H1 · Display</span>
+          <h1>So sieht die größte Überschrift im System aus</h1>
+        </article>
+        <article class="heading-sample">
+          <span class="heading-kicker">H2 · Section heading</span>
+          <h2>So wirkt die sekundäre Abschnittsüberschrift</h2>
+        </article>
+        <article class="heading-sample">
+          <span class="heading-kicker">H3 · Feature heading</span>
+          <h3>So liest sich eine kompaktere Überschrift</h3>
+        </article>
+        <article class="heading-sample">
+          <span class="heading-kicker">H4 · Supporting heading</span>
+          <h4>So sieht eine kleine Zwischenüberschrift aus</h4>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="quote-design">
+      <div class="section-head">
+        <div>
+          <h2>Quote im Fließtext</h2>
+          <p>Ein Beispiel dafür, wie ein Zitat innerhalb eines normalen Textflusses hervorgehoben werden kann, ohne typografisch aus dem System herauszufallen.</p>
+        </div>
+      </div>
+      <div class="quote-layout">
+        <article class="quote-panel">
+          <p>Guter Fließtext braucht eine klare Grundruhe. Ein Zitat sollte deshalb nicht einfach nur größer oder kursiv werden, sondern einen eigenen Takt im Layout bekommen.</p>
+          <blockquote class="inline-quote">
+            <p>Ein gutes Zitat fällt nicht aus dem Raster. Es verändert nur kurz den Tonfall und kehrt dann sauber in den Lesefluss zurück.</p>
+            <footer>Beispielzitat · typografische Auszeichnung im Lesefluss</footer>
+          </blockquote>
+          <p>Die Einbindung wirkt am besten, wenn Einzug, Kontrast, Zeilenlänge und Weißraum präzise austariert sind und der Text davor sowie danach wieder ruhig weiterläuft.</p>
+        </article>
+        <article class="quote-note">
+          <h3>Gestaltungsprinzip</h3>
+          <p>Das Zitat nutzt dieselbe Grundschrift wie der Fließtext, bekommt aber mehr Größe, weniger Zeilenlänge und eine warme Akzentkante. So bleibt es verwandt mit dem System und wirkt dennoch besonders.</p>
+        </article>
+      </div>
+    </section>
+
+
+
+    <section class="section" id="icons">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Icon-System</span>
+          <h2>Google Material Symbols</h2>
+          <p>Ausschliesslich Google Material Symbols Rounded als Icon-Font. Keine SVG-Sprites, keine anderen Icon-Sets. Gewicht und Fill werden per <code>font-variation-settings</code> gesteuert.</p>
+        </div>
+      </div>
+      <div class="icon-grid">
+        <div class="icon-tile panel">
+          <span class="icon">search</span>
+          <span>search</span>
+        </div>
+        <div class="icon-tile panel">
+          <span class="icon">edit</span>
+          <span>edit</span>
+        </div>
+        <div class="icon-tile panel">
+          <span class="icon">download</span>
+          <span>download</span>
+        </div>
+        <div class="icon-tile panel">
+          <span class="icon">save</span>
+          <span>save</span>
+        </div>
+        <div class="icon-tile panel">
+          <span class="icon">delete</span>
+          <span>delete</span>
+        </div>
+        <div class="icon-tile panel">
+          <span class="icon">upload</span>
+          <span>upload</span>
+        </div>
+        <div class="icon-tile panel">
+          <span class="icon">share</span>
+          <span>share</span>
+        </div>
+        <div class="icon-tile panel">
+          <span class="icon">filter_list</span>
+          <span>filter_list</span>
+        </div>
+        <div class="icon-tile panel">
+          <span class="icon">more_vert</span>
+          <span>more_vert</span>
+        </div>
+        <div class="icon-tile panel">
+          <span class="icon">close</span>
+          <span>close</span>
+        </div>
+        <div class="icon-tile panel">
+          <span class="icon">check_circle</span>
+          <span>check_circle</span>
+        </div>
+        <div class="icon-tile panel">
+          <span class="icon">notifications</span>
+          <span>notifications</span>
+        </div>
+        <div class="icon-tile panel">
+          <span class="icon icon-filled" style="color:var(--accent)">bookmark</span>
+          <span>bookmark (filled)</span>
+        </div>
+        <div class="icon-tile panel">
+          <span class="icon icon-filled" style="color:var(--brightgreen)">check_circle</span>
+          <span>check_circle (filled)</span>
+        </div>
+        <div class="icon-tile panel">
+          <span class="icon icon-filled" style="color:var(--error)">error</span>
+          <span>error (filled)</span>
+        </div>
+        <div class="icon-tile panel">
+          <span class="icon icon-filled" style="color:var(--warning)">warning</span>
+          <span>warning (filled)</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ui-situations">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">UI-Situationen</span>
+          <h2>Häufige UI-Muster</h2>
+          <p>Icons im Kontext realer UI-Komponenten: Suche, Dateiliste, Toolbar, Formularfeld und Benachrichtigungen.</p>
+        </div>
+      </div>
+      <div class="ui-grid">
+
+        <!-- Search bar -->
+        <div class="ui-card panel">
+          <div class="ui-card-title">Suche</div>
+          <div class="search-bar" style="background:var(--sz-warm-sand); border:1px solid var(--sz-border-mid);">
+            <span class="icon" style="color:var(--sz-text-muted)">search</span>
+            <input type="text" placeholder="Dokument suchen …" style="color:var(--sz-text-strong);">
+            <span class="icon" style="color:var(--sz-text-subtle); cursor:pointer;">tune</span>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="ui-card panel">
+          <div class="ui-card-title">Toolbar</div>
+          <div class="toolbar" style="border-radius:var(--radius-md); border:1px solid var(--sz-border-soft);">
+            <span class="toolbar-title" style="color:var(--sz-text-strong)">Dokument.pdf</span>
+            <button class="icon-btn" style="color:var(--sz-text-muted)"><span class="icon">edit</span></button>
+            <button class="icon-btn" style="color:var(--sz-text-muted)"><span class="icon">download</span></button>
+            <button class="icon-btn" style="color:var(--sz-text-muted)"><span class="icon">share</span></button>
+            <button class="icon-btn" style="color:var(--sz-text-muted)"><span class="icon">more_vert</span></button>
+          </div>
+        </div>
+
+        <!-- File list -->
+        <div class="ui-card panel">
+          <div class="ui-card-title">Dateiliste</div>
+          <div class="list-item" style="border-color:var(--sz-border-soft)">
+            <span class="icon" style="color:var(--accent)">description</span>
+            <span class="list-label" style="color:var(--sz-text-strong)">Bericht_Q1.pdf</span>
+            <span class="list-meta" style="color:var(--sz-text-subtle)">2.4 MB</span>
+            <button class="icon-btn" style="color:var(--sz-text-muted)"><span class="icon">download</span></button>
+          </div>
+          <div class="list-item" style="border-color:var(--sz-border-soft)">
+            <span class="icon" style="color:var(--brightgreen)">table_chart</span>
+            <span class="list-label" style="color:var(--sz-text-strong)">Budgetplan.xlsx</span>
+            <span class="list-meta" style="color:var(--sz-text-subtle)">890 KB</span>
+            <button class="icon-btn" style="color:var(--sz-text-muted)"><span class="icon">download</span></button>
+          </div>
+          <div class="list-item" style="border-color:var(--sz-border-soft)">
+            <span class="icon" style="color:var(--sz-text-muted)">image</span>
+            <span class="list-label" style="color:var(--sz-text-strong)">Titelbild.png</span>
+            <span class="list-meta" style="color:var(--sz-text-subtle)">1.1 MB</span>
+            <button class="icon-btn" style="color:var(--sz-text-muted)"><span class="icon">download</span></button>
+          </div>
+        </div>
+
+        <!-- Form field with icon -->
+        <div class="ui-card panel">
+          <div class="ui-card-title">Formularfeld mit Icon</div>
+          <div class="form-field">
+            <label class="form-label" style="color:var(--sz-text-muted)">E-Mail-Adresse</label>
+            <div class="input-wrap">
+              <span class="icon" style="color:var(--sz-text-muted)">mail</span>
+              <input type="email" placeholder="name@domain.ch"
+                style="background:var(--sz-warm-sand); border-color:var(--sz-border-mid); color:var(--sz-text-strong);">
+            </div>
+          </div>
+          <div class="form-field" style="margin-bottom:0">
+            <label class="form-label" style="color:var(--sz-text-muted)">Passwort</label>
+            <div class="input-wrap">
+              <span class="icon" style="color:var(--sz-text-muted)">lock</span>
+              <input type="password" placeholder="••••••••"
+                style="background:var(--sz-warm-sand); border-color:var(--sz-border-mid); color:var(--sz-text-strong);">
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="ui-card panel" style="grid-column: 1 / -1;">
+          <div class="ui-card-title">Benachrichtigungen</div>
+          <div class="notif-row" style="border-color:var(--sz-border-soft)">
+            <div class="notif-icon-wrap">
+              <span class="icon icon-filled" style="color:var(--accent)">check_circle</span>
+              <span class="notif-dot" style="background:var(--accent)"></span>
+            </div>
+            <div class="notif-body">
+              <strong style="color:var(--sz-text-strong)">Datei gespeichert</strong>
+              <p style="color:var(--sz-text-muted)">Bericht_Q1.pdf wurde erfolgreich in der Cloud gespeichert.</p>
+            </div>
+            <span class="notif-time" style="color:var(--sz-text-subtle)">gerade eben</span>
+          </div>
+          <div class="notif-row" style="border-color:var(--sz-border-soft)">
+            <div class="notif-icon-wrap">
+              <span class="icon icon-filled" style="color:var(--warning)">warning</span>
+            </div>
+            <div class="notif-body">
+              <strong style="color:var(--sz-text-strong)">Speicherplatz fast voll</strong>
+              <p style="color:var(--sz-text-muted)">Noch 2 GB verfügbar. Bitte alte Dateien archivieren.</p>
+            </div>
+            <span class="notif-time" style="color:var(--sz-text-subtle)">vor 5 Min.</span>
+          </div>
+          <div class="notif-row" style="border-color:var(--sz-border-soft)">
+            <div class="notif-icon-wrap">
+              <span class="icon icon-filled" style="color:var(--error)">error</span>
+            </div>
+            <div class="notif-body">
+              <strong style="color:var(--sz-text-strong)">Upload fehlgeschlagen</strong>
+              <p style="color:var(--sz-text-muted)">Die Verbindung wurde unterbrochen. Bitte erneut versuchen.</p>
+            </div>
+            <span class="notif-time" style="color:var(--sz-text-subtle)">vor 12 Min.</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="section" id="semantic-states">
+      <div class="section-head">
+        <div>
+          <h2>Semantische Zustände</h2>
+          <p>Error, Warning und Success als konsistente Banner-Komponente — mit Fläche, Randlinie und Icon in der jeweiligen Statusfarbe.</p>
+        </div>
+      </div>
+      <div class="status-grid">
+        <div class="status-banner status-error">
+          <div class="status-icon">✕</div>
+          <div class="status-body">
+            <h4>Fehler aufgetreten</h4>
+            <p>Die Verbindung konnte nicht hergestellt werden. Bitte überprüfe die Einstellungen und versuche es erneut.</p>
+          </div>
+        </div>
+        <div class="status-banner status-warning">
+          <div class="status-icon">!</div>
+          <div class="status-body">
+            <h4>Achtung</h4>
+            <p>Diese Aktion kann nicht rückgängig gemacht werden. Bitte stelle sicher, dass alle Daten gespeichert sind.</p>
+          </div>
+        </div>
+        <div class="status-banner status-success">
+          <div class="status-icon">✓</div>
+          <div class="status-body">
+            <h4>Erfolgreich gespeichert</h4>
+            <p>Alle Änderungen wurden übernommen und sind sofort aktiv.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+    <section class="section" id="platforms">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Plattform-Leitfaden</span>
+          <h2>Web · Electron · PyWebView</h2>
+          <p>Dieses Designsystem ist für drei Zielplattformen spezifiziert. Was nicht hier beschrieben ist, lässt sich analog ableiten.</p>
+        </div>
+      </div>
+      <div class="ui-grid">
+
+        <div class="panel">
+          <span class="icon icon-lg" style="color:var(--accent); margin-bottom:.9rem; display:block;">language</span>
+          <h3>Reines Web (Browser)</h3>
+          <p>Die Baseline. Alle Tokens, Schriften und Komponenten funktionieren ohne Anpassungen.</p>
+          <ul style="font-size:var(--text-sm); line-height:1.9; margin:.9rem 0 0; padding-left:1.2rem;">
+            <li>Google Fonts via CDN — kein lokales Einbetten nötig</li>
+            <li>Material Symbols via CDN — variable Font, volle Unterstützung</li>
+            <li>CSS Custom Properties nativ verfügbar</li>
+            <li>Theme-Toggle via <code>data-theme</code> + <code>localStorage</code></li>
+            <li>Kein Framework nötig — reines CSS und Vanilla JS genügen</li>
+            <li>Fokus-Ring <code>outline</code> funktioniert in allen modernen Browsern</li>
+          </ul>
+        </div>
+
+        <div class="panel">
+          <span class="icon icon-lg" style="color:var(--accent); margin-bottom:.9rem; display:block;">desktop_windows</span>
+          <h3>Electron</h3>
+          <p>Chromium-basiert. Fast identisch mit Web, aber Fonts und Icons müssen für Offline-Betrieb lokal eingebettet sein.</p>
+          <ul style="font-size:var(--text-sm); line-height:1.9; margin:.9rem 0 0; padding-left:1.2rem;">
+            <li><strong>Fonts lokal einbetten</strong> — kein CDN-Zugriff im Produktivbetrieb garantiert. Fira Sans, Plus Jakarta Sans und Fira Code als <code>@font-face</code> einbinden</li>
+            <li><strong>Material Symbols lokal</strong> — WOFF2-Datei der Symbols Rounded Variable Font bündeln</li>
+            <li>Scrollbar-Styling mit <code>::-webkit-scrollbar</code> möglich und empfohlen</li>
+            <li>Systemschriften als Fallback im Font-Stack definiert (<code>system-ui</code>)</li>
+            <li>IPC-Kommunikation über <code>window.api</code> — kein Fetch zu externen Ressourcen im Main-Process</li>
+            <li>CSP in <code>BrowserWindow</code>: <code>font-src 'self'</code> explizit erlauben</li>
+            <li>macOS: <code>-webkit-app-region: drag</code> für benutzerdefinierte Titelleiste nutzen</li>
+          </ul>
+        </div>
+
+        <div class="panel" style="grid-column: 1 / -1;">
+          <span class="icon icon-lg" style="color:var(--accent); margin-bottom:.9rem; display:block;">web_asset</span>
+          <h3>PyWebView</h3>
+          <p>WebKit auf macOS/Linux, Chromium (WebView2) auf Windows. Rendering-Unterschiede zwischen Plattformen sind einzuplanen.</p>
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:var(--space-5); margin-top:var(--space-5);">
+            <div>
+              <h4>Fonts</h4>
+              <ul style="font-size:var(--text-sm); line-height:1.9; margin:.5rem 0 0; padding-left:1.2rem;">
+                <li>Ausschliesslich lokale Fonts — kein Google Fonts CDN</li>
+                <li><code>@font-face</code> mit relativem Pfad zur Font-Datei</li>
+                <li>Variable Fonts (Fira Sans, Plus Jakarta Sans) werden auf WebKit und WebView2 unterstützt</li>
+                <li>Fira Code als Mono — WOFF2 mitliefern</li>
+              </ul>
+            </div>
+            <div>
+              <h4>Icons</h4>
+              <ul style="font-size:var(--text-sm); line-height:1.9; margin:.5rem 0 0; padding-left:1.2rem;">
+                <li>Material Symbols WOFF2 lokal bündeln</li>
+                <li><code>font-variation-settings</code> wird auf beiden Engines unterstützt</li>
+                <li>Icons im <code>static/</code>-Verzeichnis ablegen, das PyWebView als Root einbindet</li>
+              </ul>
+            </div>
+            <div>
+              <h4>Plattformdifferenzen</h4>
+              <ul style="font-size:var(--text-sm); line-height:1.9; margin:.5rem 0 0; padding-left:1.2rem;">
+                <li>macOS WebKit: Schriften rendern leicht dünner — Gewicht 500 statt 400 für Body empfohlen</li>
+                <li>Windows WebView2: Subpixel-Rendering — Schriften wirken schärfer, Abstände stimmen gut überein</li>
+                <li>Linux: GTK-Rendering kann abweichen — mit Gewicht 400 testen</li>
+                <li>Kein <code>backdrop-filter</code> auf WebKit ohne Präfix</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" style="grid-column: 1 / -1;">
+          <span class="icon icon-lg" style="color:var(--accent); margin-bottom:.9rem; display:block;">code</span>
+          <h3>Font-Einbindung für Offline-Plattformen</h3>
+          <p>Template für <code>@font-face</code>-Deklarationen bei lokalem Font-Einsatz (Electron, PyWebView, Tauri).</p>
+          <pre style="margin-top:var(--space-5); border-radius:var(--radius-md); padding:var(--space-5); font-family:var(--font-mono); font-size:var(--text-sm); line-height:1.8; overflow-x:auto;"><code>/* Fira Sans — Display */
+@font-face {
+  font-family: 'Fira Sans';
+  src: url('./fonts/FiraSans-Regular.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Fira Sans';
+  src: url('./fonts/FiraSans-SemiBold.woff2') format('woff2');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Fira Sans';
+  src: url('./fonts/FiraSans-Bold.woff2') format('woff2');
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+
+/* Plus Jakarta Sans — Body */
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('./fonts/PlusJakartaSans-Regular.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('./fonts/PlusJakartaSans-Medium.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  src: url('./fonts/PlusJakartaSans-SemiBold.woff2') format('woff2');
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* Fira Code — Mono */
+@font-face {
+  font-family: 'Fira Code';
+  src: url('./fonts/FiraCode-Regular.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+
+/* Material Symbols Rounded — Icons */
+@font-face {
+  font-family: 'Material Symbols Rounded';
+  src: url('./fonts/MaterialSymbolsRounded.woff2') format('woff2');
+  font-weight: 100 700; font-style: normal; font-display: block;
+}</code></pre>
+        </div>
+
+      </div>
+    </section>
+
+    </div>
+</body>
+</html>
