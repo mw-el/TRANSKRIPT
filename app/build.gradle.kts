@@ -5,17 +5,36 @@ plugins {
     id("com.android.application")
 }
 
+fun buildConfigString(value: String): String =
+    "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
+
+fun readLocalDeepInfraApiKey(): String {
+    val candidates = listOf(
+        rootProject.file(".TTS-MW-Deepinfra-api-key.txt"),
+        rootProject.file("TTS-MW-Deepinfra-api-key.txt"),
+        rootProject.file(".deepinfra-api-key.txt"),
+    )
+    return candidates.firstOrNull { it.exists() }
+        ?.readText()
+        ?.trim()
+        .orEmpty()
+}
+
 android {
     namespace = "dev.transcribe"
     compileSdk = 35
     ndkVersion = "28.0.12433566"
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "dev.transcribe"
         minSdk = 26
         targetSdk = 35
-        versionCode = 35
-        versionName = "0.1.34"
+        versionCode = 36
+        versionName = "0.1.35"
         ndk {
             abiFilters += "arm64-v8a"
         }
@@ -34,9 +53,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "DEEPINFRA_API_KEY", buildConfigString(readLocalDeepInfraApiKey()))
+        }
         release {
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")
+            buildConfigField("String", "DEEPINFRA_API_KEY", "\"\"")
         }
     }
 

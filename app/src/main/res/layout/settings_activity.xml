@@ -406,11 +406,17 @@
                 android:textSize="@dimen/text_normal"
                 android:layout_marginBottom="@dimen/space_2"/>
 
+            <Spinner
+                android:id="@+id/spinner_chat_model"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_2"/>
+
             <EditText
                 android:id="@+id/edit_chat_model"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="meta-llama/Meta-Llama-3.1-70B-Instruct"
+                android:hint="Qwen/Qwen3-235B-A22B-Instruct-2507"
                 android:inputType="text"
                 android:textColor="@color/cl_ink"
                 android:textColorHint="@color/cl_ink_soft"
@@ -426,47 +432,46 @@
                 android:background="@color/cl_border"
                 android:layout_marginBottom="@dimen/space_4"/>
 
-            <!-- TTS Voice (Kokoro — legacy, still in prefs) -->
+            <!-- TTS Voice (DeepInfra Chatterbox Multilingual) -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="TTS-Stimme (Kokoro)"
+                android:text="TTS-Stimme (DeepInfra)"
                 android:textColor="@color/cl_ink"
                 android:fontFamily="@font/inter_medium"
                 android:textSize="@dimen/text_normal"
                 android:layout_marginBottom="@dimen/space_2"/>
 
-            <Spinner
-                android:id="@+id/spinner_chat_tts_voice"
+            <EditText
+                android:id="@+id/edit_chat_tts_voice_id"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:hint="jqy7yrjgagtomro39ddy"
+                android:inputType="text"
+                android:textColor="@color/cl_ink"
+                android:textColorHint="@color/cl_ink_soft"
+                android:background="@drawable/bg_edit_text"
+                android:padding="@dimen/space_3"
+                android:fontFamily="@font/inter_regular"
+                android:textSize="@dimen/text_normal"
                 android:layout_marginBottom="@dimen/space_4"/>
 
-            <!-- Offline TTS model (Sherpa-ONNX / Thorsten) -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Offline-Sprachmodell (Thorsten Medium)"
-                android:textColor="@color/cl_ink"
-                android:fontFamily="@font/inter_medium"
-                android:textSize="@dimen/text_normal"
-                android:layout_marginBottom="@dimen/space_2"/>
-
-            <TextView
                 android:id="@+id/tv_tts_status"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text=""
+                android:text="DeepInfra Chatterbox Multilingual"
                 android:textColor="@color/cl_ink_soft"
                 android:fontFamily="@font/inter_regular"
                 android:textSize="@dimen/text_small"
-                android:layout_marginBottom="@dimen/space_2"/>
+                android:layout_marginBottom="@dimen/space_4"/>
 
             <Button
                 android:id="@+id/btn_tts_download"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Thorsten-Stimme herunterladen"
+                android:text="Nicht verwendet"
+                android:visibility="gone"
                 android:layout_marginBottom="@dimen/space_4"/>
 
             <View
@@ -475,11 +480,11 @@
                 android:background="@color/cl_border"
                 android:layout_marginBottom="@dimen/space_4"/>
 
-            <!-- Endword -->
+            <!-- Endwords per language -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Endwort (Sende-Signal)"
+                android:text="Endw\u00f6rter pro Sprache"
                 android:textColor="@color/cl_ink"
                 android:fontFamily="@font/inter_medium"
                 android:textSize="@dimen/text_normal"
@@ -488,17 +493,23 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Dieses Wort am Ende deiner Frage sendet die Nachricht an die KI."
+                android:text="Kommagetrennte Liste. Diese W\u00f6rter am Ende deiner Frage senden die Nachricht. Gro\u00df-/Kleinschreibung ist egal."
                 android:textColor="@color/cl_ink_soft"
                 android:fontFamily="@font/inter_regular"
                 android:textSize="@dimen/text_small"
+                android:layout_marginBottom="@dimen/space_2"/>
+
+            <Spinner
+                android:id="@+id/spinner_chat_endword_lang"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/space_2"/>
 
             <EditText
                 android:id="@+id/edit_chat_endword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="over"
+                android:hint="dialogende, dialog ende"
                 android:inputType="text"
                 android:textColor="@color/cl_ink"
                 android:textColorHint="@color/cl_ink_soft"

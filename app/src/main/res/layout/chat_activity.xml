@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:fitsSystemWindows="true"
     android:background="@color/cl_bg">
 
     <!-- Toolbar -->
@@ -21,7 +22,7 @@
             android:layout_height="40dp"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Schließen"
+            android:contentDescription="Schlie\u00dfen"
             android:tint="@color/cl_ink" />
 
         <TextView
@@ -34,6 +35,30 @@
             android:textStyle="bold"
             android:textColor="@color/cl_ink"
             android:paddingStart="8dp" />
+
+        <ImageButton
+            android:id="@+id/btn_chat_attach"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@android:drawable/ic_menu_add"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Datei anh\u00e4ngen"
+            android:tint="@color/cl_ink" />
+
+        <!-- Language selector chip -->
+        <TextView
+            android:id="@+id/btn_chat_lang"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:gravity="center"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="DE"
+            android:textSize="13sp"
+            android:textColor="@color/cl_ink"
+            android:fontFamily="@font/inter_medium"
+            android:background="@drawable/bg_button_secondary"
+            android:layout_marginEnd="4dp" />
 
         <ImageButton
             android:id="@+id/btn_chat_share"
@@ -54,31 +79,30 @@
             android:tint="@color/cl_ink" />
     </LinearLayout>
 
-    <!-- Transcript scroll area -->
+    <!-- Chat messages area -->
     <ScrollView
         android:id="@+id/scroll_chat"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="16dp"
-        android:clipToPadding="false">
+        android:clipToPadding="false"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
 
-        <TextView
-            android:id="@+id/tv_chat_transcript"
+        <LinearLayout
+            android:id="@+id/chat_messages"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
-            android:fontFamily="@font/inter_regular"
-            android:textColor="@color/cl_ink"
-            android:lineSpacingMultiplier="1.5"
-            android:text="" />
+            android:orientation="vertical" />
     </ScrollView>
 
     <!-- Status bar -->
     <TextView
         android:id="@+id/tv_chat_status"
         android:layout_width="match_parent"
-        android:layout_height="36dp"
+        android:layout_height="32dp"
         android:gravity="center"
         android:textSize="13sp"
         android:fontFamily="@font/inter_regular"
@@ -90,8 +114,10 @@
     <!-- Mic button row -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="100dp"
+        android:layout_height="wrap_content"
         android:gravity="center"
+        android:paddingTop="8dp"
+        android:paddingBottom="24dp"
         android:background="@color/cl_bg">
 
         <ImageButton

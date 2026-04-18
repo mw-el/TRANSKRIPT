@@ -262,13 +262,29 @@
                 android:textSize="@dimen/text_button"
                 android:layout_marginBottom="@dimen/space_4"/>
 
-            <Button
-                android:id="@+id/btn_chat"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Voice Chat starten"
-                style="@style/ButtonStyle"
-                android:backgroundTint="@color/cl_accent" />
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_chat"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Chat starten"
+                    style="@style/ButtonStyle"
+                    android:backgroundTint="@color/cl_accent"
+                    android:layout_marginEnd="@dimen/space_2" />
+
+                <Button
+                    android:id="@+id/btn_chat_history"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Chats verwalten"
+                    style="@style/SecondaryButtonStyle" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Dictate card -->

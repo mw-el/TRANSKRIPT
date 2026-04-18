@@ -42,6 +42,12 @@ app/src/main/jniLibs/
 .DS_Store
 ._*
 
+# Python
+__pycache__/
+*.pyc
+
 # Local files
 .deepinfra-api-key.txt
+.TTS-MW-Deepinfra-api-key.txt
+TTS-MW-Deepinfra-api-key.txt
 chat-model.txt

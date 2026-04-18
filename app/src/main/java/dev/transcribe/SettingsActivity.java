@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -25,7 +26,7 @@ import java.io.IOException;
  *  - Save folder for recordings and transcripts (SAF folder picker)
  *  - Default e-mail address for direct mail sharing
  *  - Voice Chat settings (API key, model, endword, system prompt)
- *  - TTS model status + download trigger
+ *  - DeepInfra TTS voice ID
  */
 public class SettingsActivity extends Activity {
 
@@ -211,16 +212,78 @@ public class SettingsActivity extends Activity {
 
         EditText apiKeyInput    = findViewById(R.id.edit_chat_api_key);
         EditText modelInput     = findViewById(R.id.edit_chat_model);
+        Spinner  modelSpinner   = findViewById(R.id.spinner_chat_model);
+        EditText ttsVoiceInput  = findViewById(R.id.edit_chat_tts_voice_id);
         EditText endwordInput   = findViewById(R.id.edit_chat_endword);
         EditText syspromptInput = findViewById(R.id.edit_chat_sysprompt);
+        Spinner  langSpinner    = findViewById(R.id.spinner_chat_endword_lang);
         Button   saveBtn        = findViewById(R.id.btn_save_chat_settings);
 
         if (apiKeyInput == null || saveBtn == null) return;
 
         apiKeyInput.setText(prefs.getString(ChatActivity.KEY_CHAT_API_KEY, ""));
-        modelInput.setText(prefs.getString(ChatActivity.KEY_CHAT_MODEL, ChatActivity.DEFAULT_MODEL));
-        endwordInput.setText(prefs.getString(ChatActivity.KEY_CHAT_ENDWORD, ChatActivity.DEFAULT_ENDWORD));
+        String currentModel = prefs.getString(ChatActivity.KEY_CHAT_MODEL, ChatActivity.DEFAULT_MODEL);
+        modelInput.setText(currentModel);
+        if (ttsVoiceInput != null) {
+            ttsVoiceInput.setText(prefs.getString(
+                ChatActivity.KEY_TTS_VOICE_ID,
+                ChatActivity.DEFAULT_TTS_VOICE_ID));
+        }
         syspromptInput.setText(prefs.getString(ChatActivity.KEY_CHAT_SYSPROMPT, ChatActivity.DEFAULT_SYSPROMPT));
+
+        String[] modelEntries = new String[ChatActivity.MODEL_OPTIONS.length + 1];
+        System.arraycopy(ChatActivity.MODEL_OPTIONS, 0, modelEntries, 0, ChatActivity.MODEL_OPTIONS.length);
+        modelEntries[modelEntries.length - 1] = "Custom…";
+        ArrayAdapter<String> modelAdapter = new ArrayAdapter<>(
+            this, android.R.layout.simple_spinner_item, modelEntries);
+        modelAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        modelSpinner.setAdapter(modelAdapter);
+        int modelIdx = java.util.Arrays.asList(ChatActivity.MODEL_OPTIONS).indexOf(currentModel);
+        modelSpinner.setSelection(modelIdx >= 0 ? modelIdx : modelEntries.length - 1);
+        modelSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> parent, View v, int pos, long id) {
+                if (pos < ChatActivity.MODEL_OPTIONS.length) {
+                    modelInput.setText(ChatActivity.MODEL_OPTIONS[pos]);
+                }
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
+        ArrayAdapter<String> langAdapter = new ArrayAdapter<>(
+            this, android.R.layout.simple_spinner_item, ChatActivity.LANG_LABELS);
+        langAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        langSpinner.setAdapter(langAdapter);
+
+        String currentLang = prefs.getString(ChatActivity.KEY_CHAT_LANGUAGE, "de");
+        int currentIdx = java.util.Arrays.asList(ChatActivity.LANG_CODES).indexOf(currentLang);
+        if (currentIdx < 0) currentIdx = 0;
+        langSpinner.setSelection(currentIdx);
+
+        final String[] shownLang = { ChatActivity.LANG_CODES[currentIdx] };
+        endwordInput.setText(prefs.getString(
+            ChatActivity.KEY_CHAT_ENDWORD + "_" + shownLang[0],
+            ChatActivity.defaultEndwordsForLang(shownLang[0])));
+
+        langSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override public void onItemSelected(AdapterView<?> parent, View v, int pos, long id) {
+                String currentEndword = endwordInput.getText().toString().trim().toLowerCase();
+                String storedForPrev  = prefs.getString(
+                    ChatActivity.KEY_CHAT_ENDWORD + "_" + shownLang[0],
+                    ChatActivity.defaultEndwordsForLang(shownLang[0]));
+                if (!currentEndword.equals(storedForPrev.trim().toLowerCase())) {
+                    prefs.edit().putString(
+                        ChatActivity.KEY_CHAT_ENDWORD + "_" + shownLang[0],
+                        currentEndword.isEmpty()
+                            ? ChatActivity.defaultEndwordsForLang(shownLang[0])
+                            : currentEndword).apply();
+                }
+                shownLang[0] = ChatActivity.LANG_CODES[pos];
+                endwordInput.setText(prefs.getString(
+                    ChatActivity.KEY_CHAT_ENDWORD + "_" + shownLang[0],
+                    ChatActivity.defaultEndwordsForLang(shownLang[0])));
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
         saveBtn.setOnClickListener(v -> {
             String endword = endwordInput.getText().toString().trim().toLowerCase();
@@ -229,8 +292,12 @@ public class SettingsActivity extends Activity {
                     apiKeyInput.getText().toString().trim())
                 .putString(ChatActivity.KEY_CHAT_MODEL,
                     modelInput.getText().toString().trim())
-                .putString(ChatActivity.KEY_CHAT_ENDWORD,
-                    endword.isEmpty() ? ChatActivity.DEFAULT_ENDWORD : endword)
+                .putString(ChatActivity.KEY_TTS_VOICE_ID,
+                    ttsVoiceInput == null
+                        ? ChatActivity.DEFAULT_TTS_VOICE_ID
+                        : ttsVoiceInput.getText().toString().trim())
+                .putString(ChatActivity.KEY_CHAT_ENDWORD + "_" + shownLang[0],
+                    endword.isEmpty() ? ChatActivity.defaultEndwordsForLang(shownLang[0]) : endword)
                 .putString(ChatActivity.KEY_CHAT_SYSPROMPT,
                     syspromptInput.getText().toString().trim())
                 .apply();
@@ -239,7 +306,7 @@ public class SettingsActivity extends Activity {
     }
 
     // ------------------------------------------------------------------
-    // TTS model status
+    // TTS status
     // ------------------------------------------------------------------
 
     private void bindTtsStatus() {
@@ -247,12 +314,7 @@ public class SettingsActivity extends Activity {
         Button   ttsDownloadBtn = findViewById(R.id.btn_tts_download);
         if (ttsStatusText == null) return;
 
-        SherpaOnnxTts probe = new SherpaOnnxTts(this, msg -> {});
-        if (probe.isModelReady()) {
-            ttsStatusText.setText("\u2705 Thorsten Medium \u2014 bereit (offline)");
-        } else {
-            ttsStatusText.setText("Thorsten Medium \u2014 wird beim ersten Sprechen entpackt");
-        }
+        ttsStatusText.setText("DeepInfra Chatterbox Multilingual \u2014 nutzt voice_id und language gem\u00e4\u00df Anleitung");
         if (ttsDownloadBtn != null) {
             ttsDownloadBtn.setVisibility(android.view.View.GONE);
         }

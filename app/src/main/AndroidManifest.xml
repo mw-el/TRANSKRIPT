@@ -43,6 +43,13 @@
             android:windowSoftInputMode="adjustResize"
             android:exported="false" />
 
+        <!-- Chat history -->
+        <activity
+            android:name=".ChatHistoryActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:theme="@style/AppDialogTheme" />
+
         <!-- Live Subtitles Activity -->
         <activity
             android:name=".LiveSubtitleActivity"

@@ -31,18 +31,13 @@ public class SherpaOnnxTts {
 
     private static final String TAG = "SherpaOnnxTts";
 
-    private static final String MODEL_FILE  = "de_DE-thorsten-medium.onnx";
-    private static final String CONFIG_FILE = "de_DE-thorsten-medium.onnx.json";
-    private static final String ASSET_DIR   = "tts-thorsten";
-    private static final String MODEL_DIR   = "tts/thorsten";
-    private static final String MARKER      = ".ready";
-
-    private static final String[] MODEL_PARTS = {
-        "de_DE-thorsten-medium.onnx.part_aa",
-        "de_DE-thorsten-medium.onnx.part_ab",
-        "de_DE-thorsten-medium.onnx.part_ac",
-        "de_DE-thorsten-medium.onnx.part_ad",
-    };
+    private static final String MODEL_FILE   = "de_DE-thorsten-medium.onnx";
+    private static final String CONFIG_FILE  = "de_DE-thorsten-medium.onnx.json";
+    private static final String TOKENS_FILE  = "tokens.txt";
+    private static final String ESPEAK_DIR   = "espeak-ng-data";
+    private static final String ASSET_DIR    = "tts-thorsten";
+    private static final String MODEL_DIR    = "tts/thorsten";
+    private static final String MARKER       = ".ready";
 
     private final Context        context;
     private final StatusListener statusListener;
@@ -69,7 +64,9 @@ public class SherpaOnnxTts {
         File dir = modelDir();
         return new File(dir, MARKER).exists()
             && new File(dir, MODEL_FILE).exists()
-            && new File(dir, CONFIG_FILE).exists();
+            && new File(dir, CONFIG_FILE).exists()
+            && new File(dir, TOKENS_FILE).exists()
+            && new File(dir, ESPEAK_DIR).isDirectory();
     }
 
     public void ensureModelReady(Runnable onReady) {
@@ -101,22 +98,13 @@ public class SherpaOnnxTts {
 
         AssetManager assets = context.getAssets();
 
-        postStatus("Sprachmodell wird zusammengesetzt …");
-        File modelDest = new File(dir, MODEL_FILE);
-        try (FileOutputStream out = new FileOutputStream(modelDest)) {
-            byte[] buf = new byte[32768];
-            for (int i = 0; i < MODEL_PARTS.length; i++) {
-                postStatus("Sprachmodell: Teil " + (i + 1) + "/" + MODEL_PARTS.length + " …");
-                try (InputStream in = assets.open(ASSET_DIR + "/" + MODEL_PARTS[i])) {
-                    int n;
-                    while ((n = in.read(buf)) != -1) {
-                        out.write(buf, 0, n);
-                    }
-                }
-            }
-        }
-
+        postStatus("Sprachmodell wird entpackt …");
+        copyAsset(assets, ASSET_DIR + "/" + MODEL_FILE,  new File(dir, MODEL_FILE));
         copyAsset(assets, ASSET_DIR + "/" + CONFIG_FILE, new File(dir, CONFIG_FILE));
+        copyAsset(assets, ASSET_DIR + "/" + TOKENS_FILE, new File(dir, TOKENS_FILE));
+
+        postStatus("Phonem-Daten werden entpackt …");
+        copyAssetDir(assets, ASSET_DIR + "/" + ESPEAK_DIR, new File(dir, ESPEAK_DIR));
 
         new File(dir, MARKER).createNewFile();
         Log.i(TAG, "Model extracted from assets");
@@ -125,7 +113,7 @@ public class SherpaOnnxTts {
     private void copyAsset(AssetManager assets, String assetPath, File dest) throws IOException {
         try (InputStream in = assets.open(assetPath);
              FileOutputStream out = new FileOutputStream(dest)) {
-            byte[] buf = new byte[8192];
+            byte[] buf = new byte[32768];
             int n;
             while ((n = in.read(buf)) != -1) {
                 out.write(buf, 0, n);
@@ -133,12 +121,31 @@ public class SherpaOnnxTts {
         }
     }
 
+    private void copyAssetDir(AssetManager assets, String assetPath, File destDir) throws IOException {
+        String[] entries = assets.list(assetPath);
+        if (entries == null || entries.length == 0) {
+            try (InputStream in = assets.open(assetPath);
+                 FileOutputStream out = new FileOutputStream(destDir)) {
+                byte[] buf = new byte[32768];
+                int n;
+                while ((n = in.read(buf)) != -1) {
+                    out.write(buf, 0, n);
+                }
+            }
+            return;
+        }
+        destDir.mkdirs();
+        for (String entry : entries) {
+            copyAssetDir(assets, assetPath + "/" + entry, new File(destDir, entry));
+        }
+    }
+
     private void initEngine() throws Exception {
         File dir = modelDir();
         OfflineTtsVitsModelConfig vits = new OfflineTtsVitsModelConfig();
         vits.setModel(new File(dir, MODEL_FILE).getAbsolutePath());
-        vits.setTokens("");
-        vits.setDataDir("");
+        vits.setTokens(new File(dir, TOKENS_FILE).getAbsolutePath());
+        vits.setDataDir(new File(dir, ESPEAK_DIR).getAbsolutePath());
         vits.setDictDir("");
         vits.setLexicon("");
         vits.setNoiseScale(0.667f);
@@ -165,10 +172,14 @@ public class SherpaOnnxTts {
             mainHandler.post(onDone::onDone);
             return;
         }
+        Log.i(TAG, "speak: text length=" + text.length());
         new Thread(() -> {
             try {
+                long t0 = System.currentTimeMillis();
                 float[] samples    = ttsEngine.generate(text, 0, 1.0f).getSamples();
                 int     sampleRate = ttsEngine.sampleRate();
+                Log.i(TAG, "speak: generate took " + (System.currentTimeMillis() - t0)
+                    + "ms, samples=" + samples.length + " rate=" + sampleRate);
                 playPcm(samples, sampleRate);
             } catch (Exception e) {
                 Log.e(TAG, "speak error", e);
@@ -179,6 +190,7 @@ public class SherpaOnnxTts {
     }
 
     private void playPcm(float[] samples, int sampleRate) {
+        Log.i(TAG, "playPcm: samples=" + samples.length + " sampleRate=" + sampleRate);
         short[] pcm16 = new short[samples.length];
         for (int i = 0; i < samples.length; i++) {
             float s = samples[i];
@@ -192,6 +204,8 @@ public class SherpaOnnxTts {
             AudioFormat.CHANNEL_OUT_MONO,
             AudioFormat.ENCODING_PCM_16BIT);
 
+        int bufSize = Math.max(minBuf * 4, 16384);
+
         AudioTrack track = new AudioTrack.Builder()
             .setAudioAttributes(new AudioAttributes.Builder()
                 .setUsage(AudioAttributes.USAGE_MEDIA)
@@ -202,20 +216,38 @@ public class SherpaOnnxTts {
                 .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                 .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
                 .build())
-            .setBufferSizeInBytes(Math.max(minBuf, pcm16.length * 2))
-            .setTransferMode(AudioTrack.MODE_STATIC)
+            .setBufferSizeInBytes(bufSize)
+            .setTransferMode(AudioTrack.MODE_STREAM)
             .build();
 
-        track.write(pcm16, 0, pcm16.length);
+        if (track.getState() != AudioTrack.STATE_INITIALIZED) {
+            Log.e(TAG, "AudioTrack not initialised (state=" + track.getState() + ")");
+            track.release();
+            return;
+        }
+
         track.play();
 
-        int played = 0;
-        while (played < pcm16.length) {
-            try { Thread.sleep(50); } catch (InterruptedException ignored) {}
-            played = track.getPlaybackHeadPosition();
+        int offset = 0;
+        while (offset < pcm16.length) {
+            int chunk = Math.min(pcm16.length - offset, 4096);
+            int written = track.write(pcm16, offset, chunk);
+            if (written < 0) {
+                Log.e(TAG, "AudioTrack.write error: " + written);
+                break;
+            }
+            offset += written;
         }
+        Log.i(TAG, "playPcm: wrote " + offset + "/" + pcm16.length + " samples");
+
+        try {
+            long durationMs = (long) pcm16.length * 1000L / sampleRate + 200;
+            Thread.sleep(durationMs);
+        } catch (InterruptedException ignored) {}
+
         track.stop();
         track.release();
+        Log.i(TAG, "playPcm: done");
     }
 
     public void release() {

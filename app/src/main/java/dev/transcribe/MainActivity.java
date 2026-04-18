@@ -89,6 +89,11 @@ public class MainActivity extends Activity {
         Button chatButton = findViewById(R.id.btn_chat);
         chatButton.setOnClickListener(v ->
                 startActivity(new Intent(this, ChatActivity.class)));
+        Button chatHistoryButton = findViewById(R.id.btn_chat_history);
+        if (chatHistoryButton != null) {
+            chatHistoryButton.setOnClickListener(v ->
+                startActivity(new Intent(this, ChatHistoryActivity.class)));
+        }
 
         Button dictateButton = findViewById(R.id.btn_dictate);
         dictateButton.setOnClickListener(v ->
